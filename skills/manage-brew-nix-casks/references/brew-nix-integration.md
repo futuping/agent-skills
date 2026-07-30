@@ -4,6 +4,7 @@
 
 - [Official cask package](#official-cask-package)
 - [Third-party metadata catalog](#third-party-metadata-catalog)
+- [Package-normalization overlay](#package-normalization-overlay)
 - [Dedicated lifecycle module](#dedicated-lifecycle-module)
 - [Lock sequence](#lock-sequence)
 - [Validation sequence](#validation-sequence)
@@ -50,6 +51,50 @@ thirdPartyBrewCasks."example-token"
 
 Keep this namespace separate from `pkgs.brewCasks` so token collisions and
 metadata provenance remain visible.
+
+## Package-normalization overlay
+
+Use an overlay when a generated ordinary package needs a reusable override but
+does not need activation state:
+
+```nix
+normalizedPackage = sourcePackage.overrideAttrs (oldAttrs: {
+  installPhase = oldAttrs.installPhase + ''
+    package-specific-normalization "$out/Applications/Example.app"
+  '';
+});
+
+overlay = final: prev: {
+  brewCasks = prev.brewCasks // {
+    example = normalizedPackage;
+  };
+};
+```
+
+Merge with `prev.brewCasks`; never replace the complete namespace. Review
+collisions before exposing a third-party token there, and retain the metadata
+source in the remote overlay implementation.
+
+A thin nix-darwin module may install the overlay after brew-nix:
+
+```nix
+{ lib, ... }:
+{
+  nixpkgs.overlays = lib.mkAfter [ overlay ];
+}
+```
+
+Keep application selection conventional:
+
+```nix
+environment.systemPackages = with pkgs.brewCasks; [
+  example
+];
+```
+
+Adding or deleting the package name should be the only per-host operation. Do
+not add a program enable option unless the application has lifecycle state
+beyond package presence.
 
 ## Dedicated lifecycle module
 
@@ -148,6 +193,7 @@ matching JSON shape does not guarantee correct macOS lifecycle behavior.
 | --- | --- |
 | Plain official `.app` bundle | Consume `pkgs.brewCasks.<token>` |
 | Plain non-official `.app` bundle | Add or reuse a narrow catalog adapter |
+| Ordinary package needing a narrow reusable override | Export a package-normalization overlay |
 | Standalone binary | Verify generated executable layout |
 | `.pkg` installer | Inspect scripts and system paths before activation |
 | Input method | Use a dedicated nix-darwin module for `/Library/Input Methods` |

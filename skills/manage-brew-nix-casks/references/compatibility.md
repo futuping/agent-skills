@@ -26,6 +26,24 @@ the following are true:
 Add a new adapter when the metadata remains compatible but its source layout
 differs. An adapter is a metadata parser, not a macOS installer.
 
+## Use a package-normalization overlay
+
+Use a focused overlay when brew-nix already produces an ordinary app, binary,
+or package but the derivation needs a reusable package-only adjustment such as:
+
+- deterministic archive normalization;
+- a bundle-specific extraction correction;
+- a narrowly scoped signing repair;
+- another override that does not create persistent system state.
+
+Export a named overlay from `brew-nix-extra`. Keep the metadata source visible,
+review token collisions, and merge rather than replace the base package
+namespace. If the overlay exposes the result through `pkgs.brewCasks`, let the
+consumer install or remove it through the ordinary package list.
+
+Do not introduce a `programs.<token>.enable` option merely to select an
+ordinary application package.
+
 ## Require a dedicated nix-darwin module
 
 Use `brew-nix-extra` or another dedicated module when software must write to

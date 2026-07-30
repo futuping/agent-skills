@@ -1,14 +1,15 @@
 ---
 name: manage-brew-nix-casks
-description: Integrate, publish, update, and troubleshoot Homebrew Casks for brew-nix and nix-darwin. Use when consuming official casks, adding casks absent from the official API through futuping/brew-api-extra, publishing special-lifecycle modules through futuping/brew-nix-extra, handling input methods or other system components, selecting adapters, wiring flake inputs, or diagnosing artifact and macOS signature compatibility.
+description: Integrate, publish, update, and troubleshoot Homebrew Casks for brew-nix and nix-darwin. Use when consuming official casks, adding casks absent from the official API through futuping/brew-api-extra, publishing package-normalization overlays or special-lifecycle modules through futuping/brew-nix-extra, handling input methods or other system components, selecting adapters, wiring flake inputs, or diagnosing artifact and macOS signature compatibility.
 ---
 
 # Manage brew-nix Casks
 
 Choose the narrowest integration layer that models both package metadata and
 macOS lifecycle correctly. Reuse official metadata when it exists, add catalog
-metadata only when it is absent, and use a dedicated nix-darwin module when
-installation requires system-managed paths or registration.
+metadata only when it is absent, use an overlay for reusable package-only
+normalization, and use a dedicated nix-darwin module when installation requires
+system-managed paths or registration.
 
 ## Inspect and classify
 
@@ -31,11 +32,11 @@ its artifact or lifecycle semantics.
 | --- | --- |
 | Official API, ordinary app/binary/pkg | Consume `pkgs.brewCasks.<token>` |
 | Missing from official API, metadata safely representable | Publish metadata through `brew-api-extra` |
+| Ordinary package needs reusable extraction or signing normalization | Publish a focused `brew-nix-extra` overlay |
 | Requires system paths, registration, or custom lifecycle | Publish or use a dedicated `brew-nix-extra` nix-darwin module |
 
-Combine the last two paths when a non-official cask also requires custom
-lifecycle behavior: publish metadata first, then make the module accept or
-select that package.
+Combine paths when needed: publish missing metadata first, then make an overlay
+or module consume that package.
 
 ## Add catalog metadata
 
@@ -68,6 +69,28 @@ before changing `brew-api-extra`.
 Publish the metadata commit before consuming it. Never lock a consumer to an
 unpublished working tree.
 
+## Add a package-normalization overlay
+
+Read
+[references/brew-nix-integration.md](references/brew-nix-integration.md)
+before changing `brew-nix-extra`.
+
+1. Work from a clean clone of
+   `https://github.com/futuping/brew-nix-extra`.
+2. Export a focused `overlays.<token>` that selects the source package and
+   applies only the required package override.
+3. Merge the package into an existing namespace without replacing unrelated
+   attributes. Add it to `pkgs.brewCasks` only when conventional cask-list
+   selection is intentional and token collisions have been reviewed.
+4. Optionally export a thin `darwinModules.<token>` that appends the overlay
+   with `lib.mkAfter`.
+5. Keep install selection in `environment.systemPackages`; do not create a
+   `programs.<token>.enable` option for an ordinary app with no lifecycle state.
+6. Preserve the resulting derivation when the task is only relocating existing
+   override code.
+
+Publish the overlay commit before adding or updating the consumer input.
+
 ## Add a dedicated lifecycle module
 
 Read
@@ -97,8 +120,8 @@ Read
 
 1. Update only the relevant input with `nix flake update <input> --flake
    <flake-path>` unless the user explicitly requests a full update.
-2. Import the package namespace or remote module explicitly and keep the
-   per-host declaration minimal.
+2. Import the package namespace, overlay, or remote module explicitly and keep
+   the per-host declaration minimal.
 3. Run formatting, `git diff --check`, and a no-build flake evaluation.
 4. Build the package or system only when the user authorized building. When
    building is excluded, evaluate derivations and verify an exact existing
@@ -111,7 +134,8 @@ Read
 Keep repository history in dependency order:
 
 1. Publish `brew-api-extra` when new metadata is required.
-2. Publish `brew-nix-extra` when a dedicated lifecycle module is required.
+2. Publish `brew-nix-extra` when a package overlay or dedicated lifecycle
+   module is required.
 3. Pin and publish the consumer configuration.
 
 Report the cask version, metadata source, artifact type, validation performed,
