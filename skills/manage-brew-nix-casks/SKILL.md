@@ -1,45 +1,58 @@
 ---
 name: manage-brew-nix-casks
-description: Onboard, update, and troubleshoot third-party Homebrew Casks for brew-nix using a registry-and-adapter metadata catalog and a Nix Darwin consumer. Use when adding a cask that is absent from the official Homebrew API, extending futuping/brew-api-extra, generating or validating cask.json, selecting or implementing a safe cask adapter, wiring thirdPartyBrewCasks into a flake, or diagnosing artifact and macOS signature compatibility.
+description: Integrate, publish, update, and troubleshoot Homebrew Casks for brew-nix and nix-darwin. Use when consuming official casks, adding casks absent from the official API through futuping/brew-api-extra, publishing special-lifecycle modules through futuping/brew-nix-extra, handling input methods or other system components, selecting adapters, wiring flake inputs, or diagnosing artifact and macOS signature compatibility.
 ---
 
 # Manage brew-nix Casks
 
-Manage a third-party cask as a two-repository change: publish validated metadata
-first, then pin and consume that revision from the Nix configuration.
+Choose the narrowest integration layer that models both package metadata and
+macOS lifecycle correctly. Reuse official metadata when it exists, add catalog
+metadata only when it is absent, and use a dedicated nix-darwin module when
+installation requires system-managed paths or registration.
 
-## Inspect before editing
+## Inspect and classify
 
 1. Locate the consumer Nix repository and inspect its worktree. Preserve
    unrelated changes.
-2. Locate a clean clone of
-   `https://github.com/futuping/brew-api-extra`, or clone it into a temporary
-   directory.
-3. Read the upstream tap's cask file and release metadata. Never evaluate
-   untrusted Ruby merely to extract metadata.
+2. Read the official Homebrew API entry, upstream tap cask, and release
+   metadata. Never evaluate untrusted Ruby merely to extract metadata.
+3. Determine whether the cask already exists in the official API.
 4. Identify the artifact type, CPU architecture layout, URL interpolation,
-   hashes, bundle name, and upstream signing state.
+   hashes, bundle name, installation paths, lifecycle hooks, and signing state.
 5. Read [references/compatibility.md](references/compatibility.md) before
-   proceeding if the artifact is not a plain `.app`.
+   choosing an integration layer.
 
-Do not claim that every Homebrew cask is compatible. Stop and explain the
-required custom Nix module when the artifact is an input method, system
-extension, driver, privileged helper, or another system-installed component.
+Do not add an official cask to `brew-api-extra` merely because brew-nix lacks
+its artifact or lifecycle semantics.
+
+## Choose an integration layer
+
+| Cask state | Integration |
+| --- | --- |
+| Official API, ordinary app/binary/pkg | Consume `pkgs.brewCasks.<token>` |
+| Missing from official API, metadata safely representable | Publish metadata through `brew-api-extra` |
+| Requires system paths, registration, or custom lifecycle | Publish or use a dedicated `brew-nix-extra` nix-darwin module |
+
+Combine the last two paths when a non-official cask also requires custom
+lifecycle behavior: publish metadata first, then make the module accept or
+select that package.
 
 ## Add catalog metadata
 
 Read
 [references/registry-and-adapters.md](references/registry-and-adapters.md)
-before changing the metadata repository.
+before changing `brew-api-extra`.
 
-1. Reuse an existing adapter only when its expected cask layout matches.
-2. Add `registry/<token>.json` with the upstream source, allowed download
+1. Work from a clean clone of
+   `https://github.com/futuping/brew-api-extra`.
+2. Reuse an existing adapter only when its expected cask layout matches.
+3. Add `registry/<token>.json` with the upstream source, allowed download
    hosts, and adapter-specific settings.
-3. If no adapter matches, add a narrowly scoped adapter plus an offline fixture
+4. If no adapter matches, add a narrowly scoped adapter plus an offline fixture
    and tests. Prefer a new adapter over weakening an existing parser.
-4. Preserve deterministic token ordering and the brew-nix-compatible output
+5. Preserve deterministic token ordering and the brew-nix-compatible output
    schema.
-5. Run:
+6. Run:
 
    ```sh
    python3 -m unittest discover -s tests
@@ -49,43 +62,59 @@ before changing the metadata repository.
    git diff --check
    ```
 
-6. Review the complete diff. Confirm that existing cask entries did not change
+7. Review the complete diff. Confirm that existing entries did not change
    unexpectedly.
 
-## Publish metadata before consuming it
+Publish the metadata commit before consuming it. Never lock a consumer to an
+unpublished working tree.
 
-Commit and push `brew-api-extra` only when the user authorizes repository
-writes. Confirm its workflow passes. Record the published revision.
+## Add a dedicated lifecycle module
 
-Do not update the consumer lock file to an unpublished working-tree state. The
-consumer uses a non-flake GitHub input, so its lock must point to a reachable
-commit.
+Read
+[references/brew-nix-integration.md](references/brew-nix-integration.md)
+before changing `brew-nix-extra`.
 
-## Integrate with brew-nix
+1. Work from a clean clone of
+   `https://github.com/futuping/brew-nix-extra`.
+2. Export a focused `darwinModules.<token>` module with an enable option and a
+   replaceable package option.
+3. Keep the module dependency-light and portable. Do not require
+   consumer-specific `specialArgs` such as a private `machine` record.
+4. Use the official `pkgs.brewCasks.<token>` package by default when available.
+   For third-party metadata, allow the consumer to pass the generated package.
+5. Make activation idempotent and convergent. Track ownership, refuse to
+   overwrite unmanaged targets, stage updates atomically, and remove only
+   module-owned artifacts when disabled.
+6. Add only package-specific extraction or signing overrides. Preserve a valid
+   Developer ID signature and verify the final bundle.
+
+Publish the module commit before adding or updating the consumer input.
+
+## Integrate and validate
 
 Read
 [references/brew-nix-integration.md](references/brew-nix-integration.md), then:
 
-1. Update only the `brew-api-extra` input unless the user explicitly wants all
-   flake inputs updated.
-2. Select the generated package through
-   `thirdPartyBrewCasks."<token>"`.
-3. Add only the minimum application-specific override. Do not re-sign a valid
-   Developer ID application.
-4. Evaluate the Darwin configuration, build the package or full system, and
-   inspect the resulting bundle.
-5. For apps, run `codesign --verify --deep --strict` on the built bundle. Test
-   launch behavior when safe and requested.
+1. Update only the relevant input with `nix flake update <input> --flake
+   <flake-path>` unless the user explicitly requests a full update.
+2. Import the package namespace or remote module explicitly and keep the
+   per-host declaration minimal.
+3. Run formatting, `git diff --check`, and a no-build flake evaluation.
+4. Build the package or system only when the user authorized building. When
+   building is excluded, evaluate derivations and verify an exact existing
+   store output if one is already available; do not imply that a new build ran.
+5. Run `codesign --verify --deep --strict` on every available final app bundle.
 6. Activate the Darwin system only when the user requested activation.
 
 ## Finish transactionally
 
 Keep repository history in dependency order:
 
-1. Metadata repository commit and push.
-2. Consumer lock/configuration commit and push.
+1. Publish `brew-api-extra` when new metadata is required.
+2. Publish `brew-nix-extra` when a dedicated lifecycle module is required.
+3. Pin and publish the consumer configuration.
 
-Report the cask version, selected adapter, artifact type, validation performed,
-published revisions, and any remaining manual macOS action. Confirm both
-worktrees are clean and synchronized when the user requested a complete
-publish.
+Report the cask version, metadata source, artifact type, validation performed,
+published revisions, and any remaining manual macOS action. Confirm every
+repository changed by the task is clean and synchronized when the user
+requested a complete publish.

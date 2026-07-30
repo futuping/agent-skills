@@ -1,4 +1,4 @@
 interface:
   display_name: "Manage brew-nix Casks"
-  short_description: "Add and validate third-party casks for brew-nix"
-  default_prompt: "Use $manage-brew-nix-casks to add a third-party Homebrew cask to my brew-nix configuration."
+  short_description: "Manage casks and special nix-darwin lifecycle"
+  default_prompt: "Use $manage-brew-nix-casks to integrate a Homebrew cask into my brew-nix or nix-darwin configuration."

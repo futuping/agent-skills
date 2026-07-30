@@ -1,32 +1,36 @@
 # Compatibility decision guide
 
-Classify the upstream cask before adding metadata.
+Classify metadata availability and lifecycle requirements separately.
 
-## Proceed with an existing app adapter
+## Consume an official cask directly
 
-Proceed when all of these are true:
+Use `pkgs.brewCasks.<token>` when the cask is present in the official Homebrew
+API and brew-nix models its artifact correctly.
 
-- The cask installs one `.app` artifact.
-- The version, SHA-256, URL, name, description, homepage, and app name are
-  represented by the adapter's exact supported layout.
+Do not duplicate an official cask in `brew-api-extra` solely to work around
+unsupported installation semantics. Keep official version, URL, and hash
+metadata authoritative, and solve lifecycle behavior in Nix or nix-darwin.
+
+## Add catalog metadata
+
+Use `brew-api-extra` when the cask is absent from the official API and all of
+the following are true:
+
+- The version, SHA-256, URL, name, description, homepage, and artifact can be
+  represented by a narrow adapter.
 - Download URLs use HTTPS and resolve only to reviewed hosts.
-- No installer scripts, privileged helpers, system extensions, drivers, input
-  source registration, or post-install hooks are required.
+- Essential metadata can be extracted without evaluating Ruby.
+- The artifact is compatible with brew-nix packaging, or a dedicated module
+  can consume the generated package safely.
 
-## Add a new catalog adapter
+Add a new adapter when the metadata remains compatible but its source layout
+differs. An adapter is a metadata parser, not a macOS installer.
 
-Add a narrowly scoped adapter when the artifact is still compatible with
-brew-nix, but its source layout differs. Examples include a universal app using
-different interpolation, a standalone binary, or a package whose metadata
-needs additional parsing.
+## Require a dedicated nix-darwin module
 
-An adapter is a metadata parser, not a macOS installer. Keep installation
-semantics in Nix or nix-darwin.
-
-## Require a dedicated Nix module
-
-Use a dedicated module or activation design when the software must write to
-system-managed locations or register with macOS. Common examples:
+Use `brew-nix-extra` or another dedicated module when software must write to
+system-managed locations, register with macOS, or implement nonstandard
+upgrade and removal behavior. Common examples include:
 
 - `/Library/Input Methods`
 - `/Library/SystemExtensions`
@@ -35,8 +39,19 @@ system-managed locations or register with macOS. Common examples:
 - privileged helper registration
 - installer packages with scripts
 
-Define removal behavior as well as installation behavior. Enabling and
-disabling the option should converge without leaving stale system artifacts.
+Require the module to:
+
+- expose enable and replaceable package options;
+- avoid consumer-specific `specialArgs`;
+- install writable copies when upstream self-update requires them;
+- use an ownership marker and refuse to replace unmanaged targets;
+- stage replacements before switching the target;
+- make enable, upgrade, disable, and repeated activation converge safely.
+
+Use
+[`futuping/brew-nix-extra`](https://github.com/futuping/brew-nix-extra) as a
+reference for remote module packaging, not as a reason to generalize
+application-specific workarounds.
 
 ## Stop for review
 
@@ -47,5 +62,6 @@ Stop and explain the blocker when:
 - the Ruby cask must be executed to discover essential values;
 - the download requires interactive authentication;
 - signing or notarization state cannot be established;
+- the lifecycle would overwrite an unmanaged system component;
 - installation would request new privacy, security, or administrator authority
   not already authorized by the user.
