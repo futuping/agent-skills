@@ -6,6 +6,9 @@ Reusable Codex skills maintained by futuping.
 
 - [`manage-brew-nix-casks`](skills/manage-brew-nix-casks): onboard, validate,
   and integrate third-party Homebrew casks with brew-nix.
+- [`manage-nix-darwin-packages`](skills/manage-nix-darwin-packages): package,
+  publish, update, and integrate non-Homebrew macOS applications with
+  nix-darwin.
 
 ## Local installation
 

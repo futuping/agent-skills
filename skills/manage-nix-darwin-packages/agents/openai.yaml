@@ -1,0 +1,4 @@
+interface:
+  display_name: "Manage nix-darwin Packages"
+  short_description: "Package and publish non-Homebrew macOS apps"
+  default_prompt: "Use $manage-nix-darwin-packages to package and integrate a non-Homebrew macOS application into my nix-darwin configuration."
