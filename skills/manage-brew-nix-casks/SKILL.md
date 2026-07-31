@@ -11,6 +11,23 @@ metadata only when it is absent, use an overlay for reusable package-only
 normalization, and use a dedicated nix-darwin module when installation requires
 system-managed paths or registration.
 
+## Default consumer declaration
+
+For every ordinary Cask, select the application by adding or deleting only its
+bare token from `environment.systemPackages`, for example:
+
+```nix
+environment.systemPackages = with pkgs.brewCasks; [
+  <token>
+];
+```
+
+Do not create `programs.<token>.enable` or another enable option merely to
+install an ordinary app. A remote module may be a thin overlay importer, but
+package selection must remain in the consumer's cask list. Treat a lifecycle
+module with an enable option as an exception that requires a demonstrated
+system-path, registration, privileged activation, or removal requirement.
+
 ## Inspect and classify
 
 1. Locate the consumer Nix repository and inspect its worktree. Preserve
@@ -30,9 +47,9 @@ its artifact or lifecycle semantics.
 
 | Cask state | Integration |
 | --- | --- |
-| Official API, ordinary app/binary/pkg | Consume `pkgs.brewCasks.<token>` |
+| Official API, ordinary app/binary/pkg | Add bare `<token>` from `pkgs.brewCasks` to `environment.systemPackages` |
 | Missing from official API, metadata safely representable | Publish metadata through `brew-api-extra` |
-| Ordinary package needs reusable extraction or signing normalization | Publish a focused `brew-nix-extra` overlay |
+| Ordinary package needs reusable extraction or signing normalization | Publish a focused `brew-nix-extra` overlay, then select bare `<token>` in the consumer |
 | Requires system paths, registration, or custom lifecycle | Publish or use a dedicated `brew-nix-extra` nix-darwin module |
 
 Combine paths when needed: publish missing metadata first, then make an overlay
@@ -91,11 +108,15 @@ before changing `brew-nix-extra`.
 
 Publish the overlay commit before adding or updating the consumer input.
 
-## Add a dedicated lifecycle module
+## Exception: add a dedicated lifecycle module
 
 Read
 [references/brew-nix-integration.md](references/brew-nix-integration.md)
 before changing `brew-nix-extra`.
+
+Use this path only after recording the concrete lifecycle requirement. A DMG
+extraction or signature issue alone normally belongs in a package-normalization
+overlay, not an enable-option module.
 
 1. Work from a clean clone of
    `https://github.com/futuping/brew-nix-extra`.
@@ -120,8 +141,9 @@ Read
 
 1. Update only the relevant input with `nix flake update <input> --flake
    <flake-path>` unless the user explicitly requests a full update.
-2. Import the package namespace, overlay, or remote module explicitly and keep
-   the per-host declaration minimal.
+2. Import the package namespace, overlay, or remote module explicitly. For an
+   ordinary cask, keep the per-host declaration to its bare token in
+   `environment.systemPackages`; do not add `programs.<token>.enable`.
 3. Run formatting, `git diff --check`, and a no-build flake evaluation.
 4. Build the package or system only when the user authorized building. When
    building is excluded, evaluate derivations and verify an exact existing
