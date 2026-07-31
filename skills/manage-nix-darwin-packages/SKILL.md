@@ -1,6 +1,6 @@
 ---
 name: manage-nix-darwin-packages
-description: Package, publish, update, migrate, and troubleshoot non-Homebrew macOS applications for nix-darwin. Use when evaluating whether to consume nixpkgs or create an independent binary package, moving an inline callPackage definition to futuping/nix-packages, exporting package overlays or thin Darwin modules, automating upstream version and hash updates, keeping host declarations to a bare package name, or diagnosing DMG/ZIP extraction, architecture, source integrity, and macOS signature compatibility.
+description: Package, publish, update, migrate, and troubleshoot non-Homebrew macOS applications for nix-darwin. Use when evaluating whether to consume nixpkgs or create an independent binary package, moving an inline callPackage definition to futuping/nix-packages, exporting package overlays or thin Darwin modules, automating upstream version and hash updates, separating consumer selections into nix-packages.nix, or diagnosing DMG/ZIP extraction, architecture, source integrity, and macOS signature compatibility.
 ---
 
 # Manage nix-darwin Packages
@@ -8,7 +8,9 @@ description: Package, publish, update, migrate, and troubleshoot non-Homebrew ma
 Use the narrowest Nix layer that preserves upstream provenance, reproducible
 source verification, macOS bundle integrity, and a minimal consumer
 configuration. Keep reusable package implementation and update automation in
-`futuping/nix-packages`; keep host-specific package selection in the consumer.
+`futuping/nix-packages`; keep its host-specific overlay imports and package
+selection in a focused consumer `nix-packages.nix`, separate from native
+nixpkgs packages and Homebrew casks.
 
 ## Inspect and classify
 
@@ -115,31 +117,43 @@ license and trust implications.
    };
    ```
 
-2. Import the thin module centrally:
+2. Import the thin module and select the bare package together in the
+   consumer's focused `nix-packages.nix`:
+
+   ```nix
+   { inputs, pkgs, ... }:
+
+   {
+     imports = [
+       inputs.nix-packages.darwinModules.example-app
+     ];
+
+     environment.systemPackages = with pkgs; [
+       example-app
+     ];
+   }
+   ```
+
+3. Import that local module once from the main flake:
 
    ```nix
    modules = [
-     inputs.nix-packages.darwinModules.example-app
+     ./nix-packages.nix
    ];
    ```
 
-3. Select the bare package in the ordinary Nixpkgs package list:
-
-   ```nix
-   environment.systemPackages = with pkgs; [
-     example-app
-   ];
-   ```
-
-4. Update only the relevant lock input:
+4. Keep `flake-nixpkgs.nix` for packages provided by the pinned nixpkgs input
+   and `flake-brew.nix` for Homebrew or brew-nix packages. Do not duplicate a
+   package across these consumer files.
+5. Update only the relevant lock input:
 
    ```sh
    nix flake update nix-packages --flake path:./nix-darwin
    ```
 
-5. Delete the replaced local derivation, stale imports, and empty residual
+6. Delete the replaced local derivation, stale imports, and empty residual
    directories. Update repository maps and maintenance documentation.
-6. Remove any local updater that rewrote version/hash bindings. A normal full
+7. Remove any local updater that rewrote version/hash bindings. A normal full
    flake update should receive the remote updater's published commit.
 
 ## Validate without overstating

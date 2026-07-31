@@ -147,8 +147,10 @@ in
 ```
 
 The module installs only the overlay. The consumer decides whether the package
-is present. This keeps adding or removing an ordinary application equivalent to
-adding or removing one package name.
+is present. Keep all such imports and selections together in the consumer's
+focused `nix-packages.nix`. This keeps adding or removing an ordinary
+application equivalent to adding or removing one package name without mixing
+it into native nixpkgs or Homebrew package lists.
 
 ## Updater acceptance policy
 
@@ -210,15 +212,20 @@ integrity for execution but does not recreate upstream trust.
 Publish the package repository first. Then:
 
 1. Add its flake input with `inputs.nixpkgs.follows = "nixpkgs"`.
-2. Import only the required Darwin module.
-3. Replace `pkgs.callPackage ./local-package.nix { }` with the overlay
+2. Add only the required remote Darwin modules to `nix-packages.nix` imports.
+3. Add their bare package attributes to `environment.systemPackages` in that
+   same file.
+4. Import only `./nix-packages.nix` from the main consumer flake. Reserve
+   `flake-nixpkgs.nix` for native nixpkgs packages and `flake-brew.nix` for
+   Homebrew or brew-nix packages.
+5. Replace `pkgs.callPackage ./local-package.nix { }` with the overlay
    attribute.
-4. Update only the new input in `flake.lock`.
-5. Evaluate the remote package derivation and compare it with the local one.
-6. Delete the tracked local package file and stale module references.
-7. Remove empty package/module directories from the filesystem.
-8. Run no-build checks and evaluate the final Darwin system.
-9. Commit the remote repository before the consumer repository.
+6. Update only the new input in `flake.lock`.
+7. Evaluate the remote package derivation and compare it with the local one.
+8. Delete the tracked local package file and stale module references, then
+   remove empty package/module directories.
+9. Run no-build checks and evaluate the final Darwin system.
+10. Commit the remote repository before the consumer repository.
 
 If the consumer already has unrelated lock changes, stage only the new input's
 lock hunk and leave the others untouched.

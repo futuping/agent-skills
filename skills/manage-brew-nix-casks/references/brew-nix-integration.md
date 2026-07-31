@@ -3,6 +3,7 @@
 ## Contents
 
 - [Official cask package](#official-cask-package)
+- [Consumer file boundaries](#consumer-file-boundaries)
 - [Third-party metadata catalog](#third-party-metadata-catalog)
 - [Package-normalization overlay](#package-normalization-overlay)
 - [Dedicated lifecycle module](#dedicated-lifecycle-module)
@@ -22,6 +23,23 @@ pkgs.brewCasks.example
 
 Keep official metadata authoritative even when a dedicated module must add
 installation lifecycle behavior.
+
+## Consumer file boundaries
+
+Keep package provenance visible in the consumer:
+
+- `flake-brew.nix` owns brew-nix imports, ordinary cask selections, and
+  cask-specific consumer options;
+- `nix-packages.nix` owns overlay imports and selections for non-Homebrew
+  applications published through `futuping/nix-packages`;
+- `flake-nixpkgs.nix` owns packages provided directly by the pinned nixpkgs
+  input;
+- the main `flake.nix` wires these focused local modules and any genuine remote
+  lifecycle modules into the Darwin system.
+
+Move both the package selection and its related overlay import when an
+application is reclassified. Never leave the same application in multiple
+package lists.
 
 ## Third-party metadata catalog
 
@@ -84,7 +102,7 @@ A thin nix-darwin module may install the overlay after brew-nix:
 }
 ```
 
-Keep application selection conventional:
+Keep application selection conventional in `flake-brew.nix`:
 
 ```nix
 environment.systemPackages = with pkgs.brewCasks; [

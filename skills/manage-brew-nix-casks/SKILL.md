@@ -1,6 +1,6 @@
 ---
 name: manage-brew-nix-casks
-description: Integrate, publish, update, and troubleshoot Homebrew Casks for brew-nix and nix-darwin. Use when consuming official casks, adding casks absent from the official API through futuping/brew-api-extra, publishing package-normalization overlays or special-lifecycle modules through futuping/brew-nix-extra, handling input methods or other system components, selecting adapters, wiring flake inputs, or diagnosing artifact and macOS signature compatibility.
+description: Integrate, publish, update, and troubleshoot Homebrew Casks for brew-nix and nix-darwin. Use when consuming official casks, adding casks absent from the official API through futuping/brew-api-extra, publishing package-normalization overlays or special-lifecycle modules through futuping/brew-nix-extra, keeping cask selection in flake-brew.nix, handling input methods or other system components, selecting adapters, wiring flake inputs, or diagnosing artifact and macOS signature compatibility.
 ---
 
 # Manage brew-nix Casks
@@ -21,6 +21,12 @@ environment.systemPackages = with pkgs.brewCasks; [
   <token>
 ];
 ```
+
+Keep this list and ordinary brew-nix consumer configuration in a focused
+`flake-brew.nix`. Reserve `flake-nixpkgs.nix` for native nixpkgs packages and
+`nix-packages.nix` for non-Homebrew applications supplied by
+`futuping/nix-packages`. When classification changes, move the package and its
+overlay import instead of declaring it in two files.
 
 Do not create `programs.<token>.enable` or another enable option merely to
 install an ordinary app. A remote module may be a thin overlay importer, but
@@ -143,7 +149,8 @@ Read
    <flake-path>` unless the user explicitly requests a full update.
 2. Import the package namespace, overlay, or remote module explicitly. For an
    ordinary cask, keep the per-host declaration to its bare token in
-   `environment.systemPackages`; do not add `programs.<token>.enable`.
+   `environment.systemPackages` inside `flake-brew.nix`; do not add
+   `programs.<token>.enable`.
 3. Run formatting, `git diff --check`, and a no-build flake evaluation.
 4. Build the package or system only when the user authorized building. When
    building is excluded, evaluate derivations and verify an exact existing
