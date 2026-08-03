@@ -3,6 +3,7 @@
 ## Contents
 
 - [Official cask package](#official-cask-package)
+- [Official direct-build gate](#official-direct-build-gate)
 - [Consumer file boundaries](#consumer-file-boundaries)
 - [Third-party metadata catalog](#third-party-metadata-catalog)
 - [Package-normalization overlay](#package-normalization-overlay)
@@ -23,6 +24,24 @@ pkgs.brewCasks.example
 
 Keep official metadata authoritative even when a dedicated module must add
 installation lifecycle behavior.
+
+## Official direct-build gate
+
+Before creating an overlay or lifecycle module for an official Cask:
+
+1. Add the bare token to `environment.systemPackages` in `flake-brew.nix`.
+2. Run formatting, `git diff --check`, and a no-build flake evaluation.
+3. Build `darwinConfigurations.<host>.pkgs.brewCasks.<token>` with
+   `nix build --no-link`.
+4. Build `darwinConfigurations.<host>.system` with `nix build --no-link`.
+5. Inspect the package output for the expected application, binary, or package
+   artifact when available.
+
+If both builds succeed and the expected artifact exists, stop. Keep the bare
+declaration and do not develop `brew-api-extra` or `brew-nix-extra`. Treat Cask
+installer scripts, system paths, lifecycle hooks, and signature results as
+diagnostic information rather than reasons to replace a successful direct
+integration. Do not run `darwin-rebuild switch` for this gate.
 
 ## Consumer file boundaries
 
@@ -72,8 +91,8 @@ metadata provenance remain visible.
 
 ## Package-normalization overlay
 
-Use an overlay when a generated ordinary package needs a reusable override but
-does not need activation state:
+Use an overlay when the official direct-build gate fails and a generated
+ordinary package needs a reusable override but does not need activation state:
 
 ```nix
 normalizedPackage = sourcePackage.overrideAttrs (oldAttrs: {
@@ -137,7 +156,9 @@ Keep per-host configuration declarative:
 programs.example.enable = true;
 ```
 
-A reusable module should:
+A reusable module is appropriate only after the direct-build gate fails for a
+lifecycle reason, or when the user explicitly requests lifecycle management.
+It should:
 
 - export `darwinModules.<token>`;
 - provide `programs.<token>.enable` and `programs.<token>.package`;
@@ -173,11 +194,20 @@ Always:
 3. Run `nix flake check --no-build --no-update-lock-file <flake>`.
 4. Evaluate the target Darwin system derivation without activation.
 
-When building is authorized:
+For every official Cask unless builds were explicitly excluded:
+
+1. Build the selected package with `nix build --no-link`.
+2. Build the complete target Darwin system with `nix build --no-link`.
+3. Confirm the expected artifact exists.
+4. Stop without extra development when those checks succeed.
+
+When additional inspection is useful:
 
 1. Build the smallest affected package before considering a full system build.
 2. Inspect the resulting bundle or artifact layout.
-3. Run `codesign --verify --deep --strict` on final app bundles.
+3. Run `codesign --verify --deep --strict` on final app bundles. After a
+   successful direct-build gate, report failures as caveats rather than using
+   them alone to justify extra development.
 
 When building is explicitly excluded:
 
@@ -187,8 +217,13 @@ When building is explicitly excluded:
 3. Report clearly that no new build or activation ran.
 
 Do not activate merely to discover whether evaluation or building succeeds.
+In particular, never run `darwin-rebuild switch` for the direct-build gate.
 
 ## Signing policy
+
+Apply this policy when direct integration fails and extra normalization is
+actually required. A diagnostic signature failure after successful package and
+Darwin system builds does not itself authorize an overlay or module.
 
 - Preserve a Developer ID signature only after strict verification proves it
   remains valid in the packaged result.
@@ -213,7 +248,8 @@ matching JSON shape does not guarantee correct macOS lifecycle behavior.
 | Plain non-official `.app` bundle | Add or reuse a narrow catalog adapter |
 | Ordinary package needing a narrow reusable override | Export a package-normalization overlay |
 | Standalone binary | Verify generated executable layout |
-| `.pkg` installer | Inspect scripts and system paths before activation |
+| Official `.pkg` installer whose package and system builds succeed | Keep the bare declaration; report scripts and system paths as caveats |
+| `.pkg` whose direct build fails | Inspect scripts and system paths, then choose the narrowest required extra layer |
 | Input method | Use a dedicated nix-darwin module for `/Library/Input Methods` |
-| System extension, driver, privileged helper | Use a purpose-built lifecycle module |
+| System extension, driver, privileged helper | Try the official direct-build gate first; use a lifecycle module only after failure or an explicit lifecycle request |
 | Login/logout or approval requirement | Report it explicitly; do not hide it in rebuild behavior |

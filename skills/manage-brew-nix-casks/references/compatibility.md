@@ -4,8 +4,12 @@ Classify metadata availability and lifecycle requirements separately.
 
 ## Consume an official cask directly
 
-Use `pkgs.brewCasks.<token>` when the cask is present in the official Homebrew
-API and brew-nix models its artifact correctly.
+Use `pkgs.brewCasks.<token>` when the Cask is present in the official Homebrew
+API. Add its bare token to `flake-brew.nix`, then build both the selected
+package and target Darwin system without activation. When both builds succeed
+and the expected artifact exists, keep the direct declaration and stop. Do not
+develop `brew-nix-extra` based only on PKG usage, installer scripts, system-path
+metadata, lifecycle hooks, or a signature warning.
 
 Do not duplicate an official cask in `brew-api-extra` solely to work around
 unsupported installation semantics. Keep official version, URL, and hash
@@ -28,8 +32,8 @@ differs. An adapter is a metadata parser, not a macOS installer.
 
 ## Use a package-normalization overlay
 
-Use a focused overlay when brew-nix already produces an ordinary app, binary,
-or package but the derivation needs a reusable package-only adjustment such as:
+Use a focused overlay only when the direct package or Darwin system build fails
+and the derivation needs a reusable package-only adjustment such as:
 
 - deterministic archive normalization;
 - a bundle-specific extraction correction;
@@ -46,9 +50,11 @@ ordinary application package.
 
 ## Require a dedicated nix-darwin module
 
-Use `brew-nix-extra` or another dedicated module when software must write to
-system-managed locations, register with macOS, or implement nonstandard
-upgrade and removal behavior. Common examples include:
+Use `brew-nix-extra` or another dedicated module only when the official direct
+build has a reproducible lifecycle-related failure, or the user explicitly
+requests management beyond package selection. A successful package and Darwin
+system build remains the stopping condition even when metadata mentions paths
+such as:
 
 - `/Library/Input Methods`
 - `/Library/SystemExtensions`
@@ -79,7 +85,12 @@ Stop and explain the blocker when:
 - a URL redirects to an unreviewed host;
 - the Ruby cask must be executed to discover essential values;
 - the download requires interactive authentication;
-- signing or notarization state cannot be established;
+- signing or notarization state cannot be established and the proposed work
+  would re-sign, normalize, activate, or otherwise expand beyond the successful
+  direct-build path;
 - the lifecycle would overwrite an unmanaged system component;
 - installation would request new privacy, security, or administrator authority
   not already authorized by the user.
+
+A signature diagnostic failure after successful direct builds is a reported
+caveat, not permission to develop extra or activate the system.

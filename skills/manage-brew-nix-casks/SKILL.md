@@ -1,15 +1,18 @@
 ---
 name: manage-brew-nix-casks
-description: Integrate, publish, update, and troubleshoot Homebrew Casks for brew-nix and nix-darwin. Use when consuming official casks, adding casks absent from the official API through futuping/brew-api-extra, publishing package-normalization overlays or special-lifecycle modules through futuping/brew-nix-extra, keeping cask selection in flake-brew.nix, handling input methods or other system components, selecting adapters, wiring flake inputs, or diagnosing artifact and macOS signature compatibility.
+description: Integrate, publish, update, and troubleshoot Homebrew Casks for brew-nix and nix-darwin. Use when consuming official casks with a bare-token, direct-build-first workflow; adding casks absent from the official API through futuping/brew-api-extra; publishing package-normalization overlays or special-lifecycle modules through futuping/brew-nix-extra only after direct integration fails; keeping cask selection in flake-brew.nix; handling input methods or other system components; selecting adapters; wiring flake inputs; or diagnosing artifact and macOS signature compatibility.
 ---
 
 # Manage brew-nix Casks
 
-Choose the narrowest integration layer that models both package metadata and
-macOS lifecycle correctly. Reuse official metadata when it exists, add catalog
-metadata only when it is absent, use an overlay for reusable package-only
-normalization, and use a dedicated nix-darwin module when installation requires
-system-managed paths or registration.
+Choose the narrowest integration layer that builds successfully. For an
+official Cask, try the bare-token consumer declaration first. Treat successful
+package and target Darwin system builds as the stopping condition: do not
+develop `brew-nix-extra` merely because the Cask uses a PKG, declares system
+paths or lifecycle hooks, or has a signature warning. Add catalog metadata only
+when official metadata is absent, and develop an overlay or lifecycle module
+only after direct integration has a reproducible failure or the user explicitly
+requests behavior beyond ordinary package selection.
 
 ## Default consumer declaration
 
@@ -32,19 +35,47 @@ Do not create `programs.<token>.enable` or another enable option merely to
 install an ordinary app. A remote module may be a thin overlay importer, but
 package selection must remain in the consumer's cask list. Treat a lifecycle
 module with an enable option as an exception that requires a demonstrated
-system-path, registration, privileged activation, or removal requirement.
+direct-build failure or an explicit request to manage lifecycle behavior.
+
+## Official Cask fast path
+
+Use this path before designing any `brew-nix-extra` integration:
+
+1. Confirm the token exists in the pinned official Homebrew API exposed through
+   `pkgs.brewCasks`.
+2. Add only the bare token to `environment.systemPackages` in
+   `flake-brew.nix`.
+3. Run formatting, `git diff --check`, and a no-build flake evaluation.
+4. Build the selected package with `nix build --no-link`.
+5. Build the target `darwinConfigurations.<host>.system` with
+   `nix build --no-link`; do not run `darwin-rebuild switch`.
+6. Confirm the expected application, binary, or package artifact exists in the
+   package output when it is inspectable.
+
+Treat the request to add a Cask as authorization for these non-activating
+validation builds unless the user explicitly excludes builds. If both builds
+succeed and the expected artifact exists, integration is complete. Stop and do
+not create or modify `brew-api-extra` or `brew-nix-extra`. Report lifecycle or
+signature observations as caveats; they do not override a successful build
+gate or authorize extra development.
+
+If the full system build fails for an unrelated dependency, diagnose that
+failure separately. Attribute failure to the new Cask only when the dependency
+chain or package build demonstrates the connection.
 
 ## Inspect and classify
 
 1. Locate the consumer Nix repository and inspect its worktree. Preserve
    unrelated changes.
-2. Read the official Homebrew API entry, upstream tap cask, and release
-   metadata. Never evaluate untrusted Ruby merely to extract metadata.
-3. Determine whether the cask already exists in the official API.
-4. Identify the artifact type, CPU architecture layout, URL interpolation,
-   hashes, bundle name, installation paths, lifecycle hooks, and signing state.
+2. Determine whether the Cask exists in the pinned official API. Read the API
+   entry and upstream tap source without evaluating untrusted Ruby.
+3. When it is official, run the [Official Cask fast path](#official-cask-fast-path)
+   before deeper packaging work.
+4. Only after the fast path fails, inspect release metadata, artifact type, CPU
+   architecture layout, URL interpolation, hashes, bundle name, installation
+   paths, lifecycle hooks, and signing state.
 5. Read [references/compatibility.md](references/compatibility.md) before
-   choosing an integration layer.
+   choosing an extra integration layer.
 
 Do not add an official cask to `brew-api-extra` merely because brew-nix lacks
 its artifact or lifecycle semantics.
@@ -53,10 +84,10 @@ its artifact or lifecycle semantics.
 
 | Cask state | Integration |
 | --- | --- |
-| Official API, ordinary app/binary/pkg | Add bare `<token>` from `pkgs.brewCasks` to `environment.systemPackages` |
+| Official API; package and Darwin system builds succeed | Keep bare `<token>` in `environment.systemPackages`; stop without developing extra |
 | Missing from official API, metadata safely representable | Publish metadata through `brew-api-extra` |
-| Ordinary package needs reusable extraction or signing normalization | Publish a focused `brew-nix-extra` overlay, then select bare `<token>` in the consumer |
-| Requires system paths, registration, or custom lifecycle | Publish or use a dedicated `brew-nix-extra` nix-darwin module |
+| Direct package or system build fails because reusable package normalization is required | Publish a focused `brew-nix-extra` overlay, then select bare `<token>` in the consumer |
+| Direct build fails because required lifecycle cannot be represented, or the user explicitly requests lifecycle management | Publish or use a dedicated `brew-nix-extra` nix-darwin module |
 
 Combine paths when needed: publish missing metadata first, then make an overlay
 or module consume that package.
@@ -120,9 +151,11 @@ Read
 [references/brew-nix-integration.md](references/brew-nix-integration.md)
 before changing `brew-nix-extra`.
 
-Use this path only after recording the concrete lifecycle requirement. A DMG
-extraction or signature issue alone normally belongs in a package-normalization
-overlay, not an enable-option module.
+Use this path only after the official fast path has a reproducible build or
+artifact failure, or when the user explicitly requests lifecycle management.
+Installer scripts, privileged paths, lifecycle metadata, a DMG extraction
+concern, or a signature warning alone do not justify a module when the direct
+package and Darwin system builds succeed.
 
 1. Work from a clean clone of
    `https://github.com/futuping/brew-nix-extra`.
@@ -152,11 +185,17 @@ Read
    `environment.systemPackages` inside `flake-brew.nix`; do not add
    `programs.<token>.enable`.
 3. Run formatting, `git diff --check`, and a no-build flake evaluation.
-4. Build the package or system only when the user authorized building. When
-   building is excluded, evaluate derivations and verify an exact existing
-   store output if one is already available; do not imply that a new build ran.
-5. Run `codesign --verify --deep --strict` on every available final app bundle.
-6. Activate the Darwin system only when the user requested activation.
+4. For an official Cask, build both the selected package and target Darwin
+   system without activation. If both succeed and the expected artifact exists,
+   stop without developing extra.
+5. Run `codesign --verify --deep --strict` on available final app bundles as a
+   diagnostic. Report failure, but do not use it alone to replace a successful
+   direct integration with extra development.
+6. When the user excludes builds, evaluate derivations and verify an exact
+   existing store output if one is already available; do not imply that a new
+   build ran.
+7. Activate the Darwin system only when the user explicitly requests
+   activation. Never use `darwin-rebuild switch` merely to validate a Cask.
 
 ## Finish transactionally
 
