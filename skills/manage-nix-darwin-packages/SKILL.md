@@ -1,6 +1,6 @@
 ---
 name: manage-nix-darwin-packages
-description: Package, publish, update, migrate, and troubleshoot non-Homebrew macOS applications for nix-darwin. Use when evaluating whether to consume nixpkgs or create an independent binary package, moving an inline callPackage definition to futuping/nix-packages, exporting package overlays or thin Darwin modules, automating upstream version and hash updates, separating consumer selections into nix-packages.nix, or diagnosing DMG/ZIP extraction, architecture, source integrity, and macOS signature compatibility.
+description: Package, publish, update, migrate, and troubleshoot non-Homebrew macOS applications for nix-darwin while enforcing bare-name consumer package selections. Use when evaluating whether to consume nixpkgs or create an independent binary package, moving an inline callPackage definition to futuping/nix-packages, exporting package overlays or thin Darwin modules, automating upstream version and hash updates, separating consumer selections into nix-packages.nix, or diagnosing DMG/ZIP extraction, architecture, source integrity, and macOS signature compatibility.
 ---
 
 # Manage nix-darwin Packages
@@ -11,6 +11,23 @@ configuration. Keep reusable package implementation and update automation in
 `futuping/nix-packages`; keep its host-specific overlay imports and package
 selection in a focused consumer `nix-packages.nix`, separate from native
 nixpkgs packages and Homebrew casks.
+
+## Enforce bare consumer package names
+
+Treat a bare application name in the consumer package list as a hard
+invariant. In the focused local `nix-packages.nix`, every application entry in
+`environment.systemPackages` must be a bare package identifier such as
+`example-app`.
+
+Never place `inputs.*.packages.*`, `pkgs.<name>`, `pkgs.callPackage`, an inline
+derivation, an interpolated system-specific package path, or a local alias for
+any of those in the consumer package list. Fully qualified
+`inputs.*.darwinModules.*` references are allowed only in `imports`.
+
+If an upstream flake exposes only `packages.<system>.<name>`, first add a
+forwarding overlay and thin Darwin module in `futuping/nix-packages`. Do not
+work around a missing remote overlay by leaking the qualified package
+expression into the consumer.
 
 ## Inspect and classify
 
@@ -40,7 +57,7 @@ packaging reason.
 
 | Application state | Integration |
 | --- | --- |
-| Adequate package in nixpkgs | Select `pkgs.<attribute>` directly |
+| Adequate package in nixpkgs | Select bare `<attribute>` from `pkgs` in `flake-nixpkgs.nix` |
 | Homebrew cask or brew-nix package | Use `manage-brew-nix-casks` |
 | Ordinary non-Homebrew app or binary | Publish a package and overlay through `futuping/nix-packages` |
 | Private or experimental source unsuitable for publication | Keep a focused local package temporarily |
@@ -66,7 +83,8 @@ Work from a clean clone of `https://github.com/futuping/nix-packages`.
    package-specific complete ad-hoc signature and verify the final bundle.
 7. Export `packages.<system>.<attribute>`, a focused
    `overlays.<attribute>`, and a thin `darwinModules.<attribute>` that appends
-   the overlay with `lib.mkAfter`.
+   the overlay with `lib.mkAfter`. A package-only export is incomplete because
+   it cannot satisfy the bare-name consumer invariant.
 8. Avoid consumer-specific `specialArgs`, host names, user paths, or package
    selection inside the remote module.
 9. Use a collision-resistant attribute such as `<name>-app` when nixpkgs
@@ -134,6 +152,11 @@ license and trust implications.
    }
    ```
 
+   Treat this package-list shape as mandatory. Keep qualified flake references
+   in `imports`; never select an application there with
+   `inputs.nix-packages.packages.${...}.example-app` or hide that expression
+   behind a local binding.
+
 3. Import that local module once from the main flake:
 
    ```nix
@@ -166,6 +189,10 @@ Always run:
 4. `nix flake check --no-build --no-update-lock-file` on the package repository
    and consumer.
 5. Package and final system derivation evaluation without activation.
+6. Inspect the consumer `nix-packages.nix` and reject every non-bare
+   application entry, including `inputs.*.packages.*`, `pkgs.<name>`,
+   `pkgs.callPackage`, inline derivations, interpolated package paths, and
+   aliases for qualified package expressions.
 
 When migrating unchanged package logic, compare the old and new package
 derivation paths. Exact equality is the strongest relocation check.

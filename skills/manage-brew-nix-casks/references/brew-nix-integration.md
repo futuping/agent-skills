@@ -15,11 +15,19 @@
 
 ## Official cask package
 
-When Homebrew publishes the cask and brew-nix supports its artifact, select it
-from the official namespace:
+When Homebrew publishes the cask and brew-nix supports its artifact, use the
+qualified package path only for evaluation or build commands:
 
 ```nix
 pkgs.brewCasks.example
+```
+
+Keep the consumer package list bare:
+
+```nix
+environment.systemPackages = with pkgs.brewCasks; [
+  example
+];
 ```
 
 Keep official metadata authoritative even when a dedicated module must add
@@ -60,6 +68,12 @@ Move both the package selection and its related overlay import when an
 application is reclassified. Never leave the same application in multiple
 package lists.
 
+In every ordinary consumer package list, make each application entry a bare
+identifier relative to the surrounding `with` namespace. Reject qualified
+package paths, generated namespaces, inline derivations, interpolated paths,
+and local aliases for those expressions. Keep qualified remote module
+references only in `imports` or the main flake's `modules` list.
+
 ## Third-party metadata catalog
 
 Pin the catalog as a non-flake input:
@@ -80,14 +94,28 @@ thirdPartyBrewCasks = import "${inputs.brew-nix}/casks.nix" {
 };
 ```
 
-Select a package explicitly:
+Treat the generated package as a remote implementation detail, not a consumer
+selection:
 
 ```nix
 thirdPartyBrewCasks."example-token"
 ```
 
-Keep this namespace separate from `pkgs.brewCasks` so token collisions and
-metadata provenance remain visible.
+Keep this namespace separate inside the remote implementation so token
+collisions and metadata provenance remain visible. Expose each reviewed token
+to the consumer through the existing `brew-nix-extra` third-party overlay and
+thin module, or add a focused remote overlay when necessary. The overlay must
+merge the token into `pkgs.brewCasks`; then `flake-brew.nix` selects only the
+bare token:
+
+```nix
+environment.systemPackages = with pkgs.brewCasks; [
+  example-token
+];
+```
+
+Never place `thirdPartyBrewCasks."example-token"` or an alias for it in the
+consumer package list.
 
 ## Package-normalization overlay
 
@@ -193,6 +221,10 @@ Always:
 2. Run `git diff --check`.
 3. Run `nix flake check --no-build --no-update-lock-file <flake>`.
 4. Evaluate the target Darwin system derivation without activation.
+5. Inspect `flake-brew.nix` and reject non-bare Cask entries, including
+   `pkgs.brewCasks.<token>`, `inputs.*.packages.*`, generated namespaces,
+   inline derivations, interpolated paths, and aliases for qualified package
+   expressions.
 
 For every official Cask unless builds were explicitly excluded:
 

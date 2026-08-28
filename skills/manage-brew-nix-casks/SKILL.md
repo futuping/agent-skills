@@ -1,6 +1,6 @@
 ---
 name: manage-brew-nix-casks
-description: Integrate, publish, update, and troubleshoot Homebrew Casks for brew-nix and nix-darwin. Use when consuming official casks with a bare-token, direct-build-first workflow; adding casks absent from the official API through futuping/brew-api-extra; publishing package-normalization overlays or special-lifecycle modules through futuping/brew-nix-extra only after direct integration fails; keeping cask selection in flake-brew.nix; handling input methods or other system components; selecting adapters; wiring flake inputs; or diagnosing artifact and macOS signature compatibility.
+description: Integrate, publish, update, and troubleshoot Homebrew Casks for brew-nix and nix-darwin while enforcing bare-token consumer selections. Use when consuming official casks with a direct-build-first workflow; adding casks absent from the official API through futuping/brew-api-extra; publishing package-normalization overlays or special-lifecycle modules through futuping/brew-nix-extra only after direct integration fails; keeping cask selection in flake-brew.nix; handling input methods or other system components; selecting adapters; wiring flake inputs; or diagnosing artifact and macOS signature compatibility.
 ---
 
 # Manage brew-nix Casks
@@ -24,6 +24,20 @@ environment.systemPackages = with pkgs.brewCasks; [
   <token>
 ];
 ```
+
+Treat this list shape as a hard invariant. Every ordinary Cask entry in local
+`flake-brew.nix` must be a bare token. Never put `pkgs.brewCasks.<token>`,
+`inputs.*.packages.*`, a generated namespace such as
+`thirdPartyBrewCasks.<token>`, `pkgs.callPackage`, an inline derivation, an
+interpolated package path, or a local alias for any of those in the package
+list. Fully qualified remote module references are allowed only in `imports`
+or the main flake's `modules` list; qualified package paths are allowed only
+for evaluation and build commands.
+
+If a generated or remote Cask is exposed only through a qualified package
+expression, first add or reuse a `brew-nix-extra` overlay and thin Darwin
+module that merges the reviewed token into `pkgs.brewCasks`. Do not leak the
+qualified expression into `flake-brew.nix`.
 
 Keep this list and ordinary brew-nix consumer configuration in a focused
 `flake-brew.nix`. Reserve `flake-nixpkgs.nix` for native nixpkgs packages and
@@ -120,6 +134,11 @@ before changing `brew-api-extra`.
 7. Review the complete diff. Confirm that existing entries did not change
    unexpectedly.
 
+Ensure the existing `brew-nix-extra` third-party overlay/module exposes the new
+token through `pkgs.brewCasks`. Add a focused remote overlay/module only when
+the generic integration cannot do so; never select the generated package
+directly in the consumer list.
+
 Publish the metadata commit before consuming it. Never lock a consumer to an
 unpublished working tree.
 
@@ -184,17 +203,21 @@ Read
    ordinary cask, keep the per-host declaration to its bare token in
    `environment.systemPackages` inside `flake-brew.nix`; do not add
    `programs.<token>.enable`.
-3. Run formatting, `git diff --check`, and a no-build flake evaluation.
-4. For an official Cask, build both the selected package and target Darwin
+3. Inspect `flake-brew.nix` and reject every non-bare application entry,
+   including `pkgs.brewCasks.<token>`, `inputs.*.packages.*`, generated package
+   namespaces, inline derivations, interpolated paths, and aliases for
+   qualified package expressions.
+4. Run formatting, `git diff --check`, and a no-build flake evaluation.
+5. For an official Cask, build both the selected package and target Darwin
    system without activation. If both succeed and the expected artifact exists,
    stop without developing extra.
-5. Run `codesign --verify --deep --strict` on available final app bundles as a
+6. Run `codesign --verify --deep --strict` on available final app bundles as a
    diagnostic. Report failure, but do not use it alone to replace a successful
    direct integration with extra development.
-6. When the user excludes builds, evaluate derivations and verify an exact
+7. When the user excludes builds, evaluate derivations and verify an exact
    existing store output if one is already available; do not imply that a new
    build ran.
-7. Activate the Darwin system only when the user explicitly requests
+8. Activate the Darwin system only when the user explicitly requests
    activation. Never use `darwin-rebuild switch` merely to validate a Cask.
 
 ## Finish transactionally

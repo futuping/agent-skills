@@ -152,6 +152,22 @@ focused `nix-packages.nix`. This keeps adding or removing an ordinary
 application equivalent to adding or removing one package name without mixing
 it into native nixpkgs or Homebrew package lists.
 
+The remote integration is incomplete until the consumer can select the package
+by a bare identifier. When forwarding an upstream flake package instead of
+calling a local package expression, expose it through the same overlay/module
+boundary:
+
+```nix
+upstreamOverlay = final: _prev: {
+  example-app =
+    upstream.packages.${final.stdenv.hostPlatform.system}.example-app;
+};
+```
+
+Export that overlay and append it from a thin Darwin module. The forwarded
+derivation remains owned by the upstream flake; the overlay exists to provide
+the stable bare consumer attribute.
+
 ## Updater acceptance policy
 
 An updater should:
@@ -214,7 +230,9 @@ Publish the package repository first. Then:
 1. Add its flake input with `inputs.nixpkgs.follows = "nixpkgs"`.
 2. Add only the required remote Darwin modules to `nix-packages.nix` imports.
 3. Add their bare package attributes to `environment.systemPackages` in that
-   same file.
+   same file. Reject `inputs.*.packages.*`, `pkgs.<name>`, `pkgs.callPackage`,
+   inline derivations, interpolated package paths, and local aliases for
+   qualified package expressions.
 4. Import only `./nix-packages.nix` from the main consumer flake. Reserve
    `flake-nixpkgs.nix` for native nixpkgs packages and `flake-brew.nix` for
    Homebrew or brew-nix packages.
