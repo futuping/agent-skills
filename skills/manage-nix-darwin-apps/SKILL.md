@@ -106,6 +106,9 @@ reference completely before acting:
 - For an independent package, migration, upstream flake forwarding, updater,
   or non-Homebrew bundle repair, read
   [references/remote-package-pattern.md](references/remote-package-pattern.md).
+- For every updater, scheduled release monitor, or update-frequency change,
+  also read
+  [references/update-cadence.md](references/update-cadence.md).
 
 For a Cask, run its direct-build gate before treating system paths, installer
 scripts, lifecycle metadata, or signature warnings as reasons to build an

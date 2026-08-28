@@ -98,6 +98,6 @@ For every new adapter:
 ## CI behavior
 
 GitHub Actions runs adapter tests and regeneration on relevant pushes, manual
-dispatches, and the hourly schedule. It commits only `cask.json` when upstream
+dispatches, and the daily schedule. It commits only `cask.json` when upstream
 metadata changes. Registry and adapter changes therefore require a normal
 human-authored commit; version refreshes are automatic.
