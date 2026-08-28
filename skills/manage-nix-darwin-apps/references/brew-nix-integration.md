@@ -117,6 +117,19 @@ environment.systemPackages = with pkgs.brewCasks; [
 Never place `thirdPartyBrewCasks."example-token"` or an alias for it in the
 consumer package list.
 
+Declare every catalog-backed token, including tokens used by focused overlays,
+in one shared remote registry. Make the overlays and a standalone lock guard
+consume that registry; do not introduce a token only as a literal attribute
+selection inside an overlay. The guard must read the `brew-api-extra` catalog
+from `brew-nix-extra`'s own standalone lock and fail with the missing tokens
+listed. This verifies compatibility, not freshness: an older catalog remains
+valid when it contains every required token.
+
+Token presence alone does not prove that a newer brew-nix generator capability
+is available. When implementation depends on such a capability, add an
+explicit standalone probe that applies the real overlay and forces the
+affected derivation using `brew-nix-extra`'s own locked inputs.
+
 ## Package-normalization overlay
 
 Use an overlay when the official direct-build gate fails and a generated
@@ -203,15 +216,38 @@ unmarked target.
 
 ## Lock sequence
 
-Publish dependency repositories before updating the consumer:
+Close and publish every dependency edge before updating the next dependent
+repository:
+
+1. Validate and publish `brew-api-extra` when its registry, adapter, or
+   generated catalog changes.
+2. In `brew-nix-extra`, update only each direct input whose new content or
+   capability is now required, then inspect the lock diff:
+
+   ```sh
+   nix flake update brew-api-extra
+   nix flake check --all-systems --no-build --no-update-lock-file
+   ```
+
+   Run the explicit catalog and overlay capability probes, publish
+   `brew-nix-extra`, and require its push/pull-request CI to pass. If a newer
+   `brew-nix` capability is required instead, update and probe that direct
+   input by the same rule.
+3. Only after both remote revisions are published, update the consumer inputs
+   that must provide those revisions. A consumer-level catalog input followed
+   by `brew-nix-extra` must contain the required tokens before updating the
+   dependent flake:
 
 ```sh
 nix flake update brew-api-extra --flake ./nix-darwin
 nix flake update brew-nix-extra --flake ./nix-darwin
 ```
 
-Run only the command for the input that changed. When both metadata and module
-repositories change, publish and lock them in that order.
+Run only the commands required by the changed dependency edges. Never use the
+consumer commands or its `follows` overrides in place of updating and checking
+`brew-nix-extra`'s own lock. Do not require locks to equal upstream HEAD; the
+invariant is that each dependent repository's lock contains every capability
+its implementation uses.
 
 ## Validation sequence
 
@@ -219,9 +255,16 @@ Always:
 
 1. Run Nix formatting checks.
 2. Run `git diff --check`.
-3. Run `nix flake check --no-build --no-update-lock-file <flake>`.
-4. Evaluate the target Darwin system derivation without activation.
-5. Inspect `flake-brew.nix` and reject non-bare Cask entries, including
+3. Run `nix flake check --all-systems --no-build --no-update-lock-file` from
+   each changed remote repository root, without consumer overrides.
+4. Force every catalog token and changed overlay/package capability under the
+   remote repository's own lock. A generic overlay function check is not
+   sufficient.
+5. Confirm read-only push/pull-request CI runs the same standalone check and
+   probes before updating the consumer lock.
+6. Run the consumer flake check and evaluate the target Darwin system
+   derivation without activation.
+7. Inspect `flake-brew.nix` and reject non-bare Cask entries, including
    `pkgs.brewCasks.<token>`, `inputs.*.packages.*`, generated namespaces,
    inline derivations, interpolated paths, and aliases for qualified package
    expressions.

@@ -18,10 +18,16 @@ package repository.
 2. Resolve the exact package, input, host, and repository before changing
    state. Do not duplicate an application across ecosystems merely because its
    attribute name differs.
-3. Publish reusable remote implementation before locking the consumer. Never
+3. Before publishing a reusable remote flake, update every direct input whose
+   source changed or whose newer content or capability the implementation now
+   requires in that flake's own `flake.lock`. Validate the repository
+   standalone from its root. Treat consumer `follows` edges only as input
+   deduplication; never use them as evidence that the remote flake's own lock
+   is complete or compatible.
+4. Publish reusable remote implementation before locking the consumer. Never
    point a consumer lock at an unpublished worktree.
-4. Never activate the Darwin system unless the user explicitly requests it.
-5. Apply build authority by route:
+5. Never activate the Darwin system unless the user explicitly requests it.
+6. Apply build authority by route:
    - Treat a request to add an official Cask as authorization for non-activating
      package and system builds unless the user excludes builds.
    - Build native nixpkgs or independent packages only when the user authorizes
@@ -204,7 +210,8 @@ consumer-specific `specialArgs`.
    references in `imports` or the main flake's `modules` list.
 3. Select the application once by its bare name in the matching focused list.
 4. Make reusable flake inputs follow the consumer's nixpkgs input when the
-   remote contract supports it.
+   remote contract supports it, but only after the remote flake passes its own
+   standalone lock checks.
 5. Update only the relevant lock input; do not run a full flake update unless
    requested.
 6. Remove replaced local derivations, stale imports, updater code, and empty
@@ -216,15 +223,28 @@ Always:
 
 1. Run package-updater tests and JSON/YAML parsing when those files change.
 2. Run Nix formatting checks and `git diff --check`.
-3. Run `nix flake check --no-build --no-update-lock-file` on every affected
-   flake.
-4. Evaluate the selected package and final Darwin system derivations without
+3. From each reusable remote repository root, run
+   `nix flake check --no-build --no-update-lock-file` against its own lock
+   before checking the consumer. Do not inject consumer `follows` edges or
+   `--override-input`; add `--all-systems` when the flake exports packages for
+   systems other than the CI host.
+4. Add explicit checks or evaluations that force every changed package
+   attribute, catalog token, overlay result, module dependency, or upstream
+   capability under the remote repository's own lock. A check that only proves
+   an overlay is a function or a module is an attribute set is insufficient
+   because Nix may leave its contents lazy.
+5. Require reusable remote flakes to run the same standalone checks and
+   capability probes in read-only push/pull-request CI. A scheduled updater is
+   not a substitute for this gate. Confirm it succeeds before updating the
+   consumer lock.
+6. Run `nix flake check --no-build --no-update-lock-file` on the consumer, then
+   evaluate the selected package and final Darwin system derivations without
    activation.
-5. Inspect all three focused consumer files and reject every non-bare ordinary
+7. Inspect all three focused consumer files and reject every non-bare ordinary
    application entry or duplicate declaration.
-6. When migrating unchanged package logic, compare the old and new derivation
+8. When migrating unchanged package logic, compare the old and new derivation
    paths; exact equality is the strongest relocation check.
-7. Inspect available final app bundles and run
+9. Inspect available final app bundles and run
    `codesign --verify --deep --strict` as a diagnostic. Apply the route-specific
    signature policy before changing packaging.
 

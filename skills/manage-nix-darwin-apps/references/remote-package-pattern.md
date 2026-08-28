@@ -8,6 +8,7 @@
 - [Overlay and Darwin module](#overlay-and-darwin-module)
 - [Updater acceptance policy](#updater-acceptance-policy)
 - [macOS bundle policy](#macos-bundle-policy)
+- [Remote lock closure](#remote-lock-closure)
 - [Consumer migration](#consumer-migration)
 
 ## Decision boundaries
@@ -43,6 +44,7 @@ Prefer one small shared flake instead of one repository per application:
 ├── tests/
 │   └── test_update_example_app.py
 └── .github/workflows/
+    ├── check-flake.yml
     └── update-packages.yml
 ```
 
@@ -222,6 +224,29 @@ Prefer an extraction method that preserves it. If that is impossible and an
 ad-hoc signature is appropriate, sign the complete final bundle, set
 `dontFixup = true`, and verify it again. An ad-hoc signature preserves bundle
 integrity for execution but does not recreate upstream trust.
+
+## Remote lock closure
+
+When the package repository forwards an upstream flake, update its own direct
+input whenever the implementation starts requiring a newer package attribute
+or capability. Do not update unrelated inputs merely for freshness. Before
+publishing the package repository:
+
+1. Run its flake check standalone from the repository root against its own
+   lock, without consumer `follows` edges or `--override-input`.
+2. Use `--all-systems` or explicit evaluations to force every supported-system
+   package derivation and the real overlay result. A type-only overlay/module
+   check can pass while a forwarded attribute remains missing because Nix is
+   lazy.
+3. Run the same no-update check and explicit probes in read-only
+   push/pull-request CI. Scheduled release-update automation does not replace
+   this gate.
+4. Publish this verified remote revision before adding or refreshing any
+   consumer `follows` edge or lock pin.
+
+Consumer deduplication may change the effective inputs and make a broken remote
+lock appear healthy. Treat it as a graph optimization only, never as remote
+lock validation.
 
 ## Consumer migration
 
