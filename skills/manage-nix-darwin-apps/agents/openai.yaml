@@ -1,0 +1,4 @@
+interface:
+  display_name: "Manage nix-darwin Apps"
+  short_description: "Manage macOS apps across Nix and Homebrew"
+  default_prompt: "Use $manage-nix-darwin-apps to classify, integrate, and validate a macOS application in my nix-darwin configuration."

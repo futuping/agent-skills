@@ -4,14 +4,12 @@ Reusable Codex skills maintained by futuping.
 
 ## Skills
 
-- [`manage-brew-nix-casks`](skills/manage-brew-nix-casks): onboard, validate,
-  and integrate third-party Homebrew casks with brew-nix.
-- [`manage-nix-darwin-packages`](skills/manage-nix-darwin-packages): package,
-  publish, update, and integrate non-Homebrew macOS applications with
-  nix-darwin.
+- [`manage-nix-darwin-apps`](skills/manage-nix-darwin-apps): classify,
+  package, publish, update, and integrate Homebrew and non-Homebrew macOS
+  applications with nix-darwin.
 
 ## Local installation
 
-Clone this repository, then link the desired skill directory into
-`~/.codex/skills/`. Restart Codex or begin a new task if the installed skill
-does not appear immediately.
+Clone this repository, then link the skill directory into `~/.codex/skills/`.
+Restart Codex or begin a new task if the installed skill does not appear
+immediately.

@@ -16,7 +16,7 @@ Use this pattern for an ordinary macOS application that is not best represented
 by nixpkgs or Homebrew. Keep these cases elsewhere:
 
 - adequate nixpkgs package: consume it directly;
-- Homebrew cask: use `manage-brew-nix-casks`;
+- Homebrew cask: follow the Homebrew Cask route in this skill;
 - system extension, input method, driver, LaunchDaemon, or privileged helper:
   use a lifecycle module;
 - private licensed artifact that must not be referenced publicly: keep its

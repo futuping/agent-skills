@@ -1,4 +1,0 @@
-interface:
-  display_name: "Manage brew-nix Casks"
-  short_description: "Manage brew-nix casks, overlays, and lifecycle"
-  default_prompt: "Use $manage-brew-nix-casks to integrate a Homebrew cask into my brew-nix or nix-darwin configuration."
