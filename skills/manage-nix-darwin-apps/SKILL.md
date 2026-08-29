@@ -24,10 +24,14 @@ package repository.
    standalone from its root. Treat consumer `follows` edges only as input
    deduplication; never use them as evidence that the remote flake's own lock
    is complete or compatible.
-4. Publish reusable remote implementation before locking the consumer. Never
+4. When a reusable repository owns tests, metadata generators, or updaters,
+   give it a committed lock, an explicit maintainer dev shell, and fixed Nix
+   app entry points. Run CI and scheduled automation through those entry
+   points, not a user or runner's ambient language runtime or package path.
+5. Publish reusable remote implementation before locking the consumer. Never
    point a consumer lock at an unpublished worktree.
-5. Never activate the Darwin system unless the user explicitly requests it.
-6. Apply build authority by route:
+6. Never activate the Darwin system unless the user explicitly requests it.
+7. Apply build authority by route:
    - Treat a request to add an official Cask as authorization for non-activating
      package and system builds unless the user excludes builds.
    - Build native nixpkgs or independent packages only when the user authorizes
@@ -115,6 +119,9 @@ reference completely before acting:
 - For every updater, scheduled release monitor, or update-frequency change,
   also read
   [references/update-cadence.md](references/update-cadence.md).
+- For any reusable repository that runs tests, generators, or updaters, also
+  read
+  [references/maintainer-environments.md](references/maintainer-environments.md).
 
 For a Cask, run its direct-build gate before treating system paths, installer
 scripts, lifecycle metadata, or signature warnings as reasons to build an
@@ -222,12 +229,16 @@ consumer-specific `specialArgs`.
 Always:
 
 1. Run package-updater tests and JSON/YAML parsing when those files change.
+   Use the repository's locked maintainer entry point when it has one.
 2. Run Nix formatting checks and `git diff --check`.
 3. From each reusable remote repository root, run
    `nix flake check --no-build --no-update-lock-file` against its own lock
    before checking the consumer. Do not inject consumer `follows` edges or
-   `--override-input`; add `--all-systems` when the flake exports packages for
-   systems other than the CI host.
+   `--override-input`. Add `--all-systems` when it can evaluate the flake's
+   supported outputs without forcing an unrelated import-from-derivation or
+   unavailable cross-platform source. Otherwise explicitly evaluate every
+   changed cross-system package, check, app, and dev shell; explain the scoped
+   fallback and never drop coverage silently.
 4. Add explicit checks or evaluations that force every changed package
    attribute, catalog token, overlay result, module dependency, or upstream
    capability under the remote repository's own lock. A check that only proves

@@ -8,6 +8,7 @@
 - [Overlay and Darwin module](#overlay-and-darwin-module)
 - [Updater acceptance policy](#updater-acceptance-policy)
 - [macOS bundle policy](#macos-bundle-policy)
+- [Maintainer environment](#maintainer-environment)
 - [Remote lock closure](#remote-lock-closure)
 - [Consumer migration](#consumer-migration)
 
@@ -192,7 +193,9 @@ identity check before accepting the replacement automatically.
 
 Scheduled workflows should have:
 
-- minimal `contents: write` permission;
+- minimal `contents: write` permission only for scheduled or manually
+  dispatched publication;
+- read-only push/pull-request validation in a separate workflow;
 - concurrency control;
 - manual dispatch;
 - updater unit tests before the live update;
@@ -201,6 +204,14 @@ Scheduled workflows should have:
 - an empty heartbeat commit or another strategy that prevents
   inactivity-based schedule disablement in a quiet public repository without
   rewriting package content.
+
+## Maintainer environment
+
+Run updater tests and live updates through the repository's locked Nix entry
+points, not a host `python3` or other ambient runtime. Follow
+[maintainer-environments.md](maintainer-environments.md) for the dev shell,
+wrapper, compatibility, writable-checkout, CI permission, and cross-system
+evaluation contract.
 
 ## macOS bundle policy
 
@@ -235,9 +246,9 @@ publishing the package repository:
 1. Run its flake check standalone from the repository root against its own
    lock, without consumer `follows` edges or `--override-input`.
 2. Use `--all-systems` or explicit evaluations to force every supported-system
-   package derivation and the real overlay result. A type-only overlay/module
-   check can pass while a forwarded attribute remains missing because Nix is
-   lazy.
+   package derivation, changed maintainer output, and the real overlay result.
+   A type-only overlay/module check can pass while a forwarded attribute
+   remains missing because Nix is lazy.
 3. Run the same no-update check and explicit probes in read-only
    push/pull-request CI. Scheduled release-update automation does not replace
    this gate.

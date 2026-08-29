@@ -255,8 +255,11 @@ Always:
 
 1. Run Nix formatting checks.
 2. Run `git diff --check`.
-3. Run `nix flake check --all-systems --no-build --no-update-lock-file` from
-   each changed remote repository root, without consumer overrides.
+3. Run `nix flake check --no-build --no-update-lock-file` from each changed
+   remote repository root, without consumer overrides. Add `--all-systems`
+   when the full flake is safe to evaluate in clean CI; otherwise follow
+   [maintainer-environments.md](maintainer-environments.md) and explicitly
+   force every changed cross-system output without silently dropping coverage.
 4. Force every catalog token and changed overlay/package capability under the
    remote repository's own lock. A generic overlay function check is not
    sufficient.

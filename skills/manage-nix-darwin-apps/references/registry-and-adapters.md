@@ -7,7 +7,10 @@ The metadata repository is
 
 ```text
 registry/<token>.json
+flake.nix
+flake.lock
 scripts/update.py
+scripts/check_catalog.py
 scripts/adapters/
 tests/fixtures/
 tests/test_adapters.py
@@ -90,14 +93,24 @@ For every new adapter:
 1. Add a minimal offline Ruby fixture for each supported layout.
 2. Test successful metadata, architecture/variation behavior, and at least one
    important rejection path.
-3. Run the live generator against the real upstream source.
-4. Confirm `python3 -m scripts.update --check` succeeds immediately afterward.
-5. Confirm existing generated entries remain unchanged unless their upstream
+3. Run the live generator against the real upstream source through
+   `nix run --no-update-lock-file .#update-casks`.
+4. Run `nix run --no-update-lock-file .#maintainer-check` so the offline tests,
+   generated catalog, workflows, and formatting are checked together.
+5. Confirm `nix run --no-update-lock-file .#update-casks -- --check` succeeds
+   immediately afterward.
+6. Confirm existing generated entries remain unchanged unless their upstream
    versions changed.
+
+Keep the maintainer runtime, fixed commands, version compatibility checks, and
+CI permission split aligned with
+[maintainer-environments.md](maintainer-environments.md).
 
 ## CI behavior
 
-GitHub Actions runs adapter tests and regeneration on relevant pushes, manual
-dispatches, and the daily schedule. It commits only `cask.json` when upstream
-metadata changes. Registry and adapter changes therefore require a normal
-human-authored commit; version refreshes are automatic.
+GitHub Actions runs adapter and catalog checks with read-only permissions on
+pull requests and ordinary pushes. Only the daily schedule and manual updater
+dispatch regenerate metadata with write permission, and they commit only
+`cask.json` when upstream metadata changes. Registry and adapter changes
+therefore require a normal human-authored commit; version refreshes are
+automatic.
