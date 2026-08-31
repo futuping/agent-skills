@@ -13,26 +13,25 @@ package repository.
 
 ## Default for an official Cask
 
-When the application already has an official Homebrew Cask, use the ordinary
-declaration-and-rebuild workflow. A supplied `formulae.brew.sh/cask/<token>`
+When the application already has an official Homebrew Cask, only add its bare
+declaration by default. A supplied `formulae.brew.sh/cask/<token>`
 page or an entry in the existing official catalog is enough to choose this
 route; do not first compare nixpkgs packages or audit upstream releases.
 
 1. Check the existing application declarations to avoid adding a duplicate.
 2. Add only the bare token, such as `coteditor`, to `flake-brew.nix` under
    `with pkgs.brewCasks`.
-3. Run the normal target Darwin rebuild in the mode authorized by the user.
-   Keep the existing lock unless a missing token or a concrete failure requires
-   a focused input update. Honor requests to edit only or skip rebuilding.
-4. If the rebuild succeeds and no application problem is reported, stop.
-   Perform strict checks only after a rebuild or use failure, or when the user
-   explicitly requests an audit.
+3. Keep the existing lock and finish after the declaration is added. Do not
+   build, rebuild, or activate the system as part of a routine Cask addition.
+4. If an actual problem is later reported, investigate that specific problem.
+   Additional builds or checks belong to an explicitly requested task or an
+   authorized fix that needs them, not the default addition workflow.
 
-Do not add preliminary `nix flake check` or derivation evaluations, a separate
-package build, manual version/hash comparisons, bundle/CLI/architecture
-inspection, or `codesign` verification to this routine path. The normal rebuild
-already performs Nix's source verification. Do not create an overlay, catalog
-entry, or lifecycle module in anticipation of a possible problem.
+Do not replace the skipped build with `nix flake check`, derivation evaluation,
+manual version/hash comparisons, bundle/CLI/architecture inspection, or
+`codesign` verification. Do not ask whether to build as a routine follow-up.
+Do not create an overlay, catalog entry, or lifecycle module in anticipation
+of a possible problem.
 
 ## Preserve worktrees and authority
 
@@ -59,10 +58,11 @@ entry, or lifecycle module in anticipation of a possible problem.
    Rebuilding alone does not authorize a full lock update, generation deletion,
    or garbage collection through a convenience wrapper.
 7. Apply build authority by route:
-   - Treat a request to add an official Cask as authorization for the normal
-     target system rebuild unless the user excludes it. Without activation
-     authorization, use `nix build --no-link` for that rebuild; do not add a
-     separate package build as a validation gate.
+   - An ordinary official Cask addition authorizes only the declaration.
+     Earlier additions or rebuilds do not authorize building subsequent Cask
+     additions. Build only when explicitly requested for the task or needed
+     for an authorized fix of a reported problem. For an authorized build
+     without activation, use `nix build --no-link`.
    - Build native nixpkgs or independent packages only when the user authorizes
      building.
 
@@ -130,7 +130,7 @@ For an application whose source still needs to be classified:
 | Application state | Route |
 | --- | --- |
 | Adequate pinned nixpkgs package | Select its bare attribute in `flake-nixpkgs.nix` |
-| Official Cask | Declare its bare token and run the normal Darwin rebuild |
+| Official Cask | Declare its bare token and finish without building |
 | Cask missing from the official API | Publish metadata through `brew-api-extra`, then expose its bare token through `brew-nix-extra` |
 | Cask needs a reproducible package-only correction after a rebuild or use failure | Publish a focused `brew-nix-extra` overlay |
 | Ordinary non-Homebrew app or binary | Publish package, overlay, and thin module through `futuping/nix-packages` |
@@ -157,9 +157,9 @@ reference completely before acting:
   read
   [references/maintainer-environments.md](references/maintainer-environments.md).
 
-For a Cask, let the normal rebuild and actual use determine whether additional
-integration is needed. Metadata alone is not a reason to start strict checks
-or develop an extra layer.
+For a Cask, investigate additional integration only for a reported problem or
+an explicit request for further work. Metadata alone is not a reason to start
+strict checks or develop an extra layer.
 
 ## Use the native nixpkgs route
 
@@ -172,7 +172,8 @@ or develop an extra layer.
 
 ## Use the Homebrew Cask route
 
-For an official Cask, follow the declaration-and-rebuild workflow above.
+For an official Cask, follow the default workflow above and stop after declaring
+its bare token.
 The remaining guidance applies when a failure or custom packaging work needs
 more than the bare declaration.
 
@@ -227,9 +228,9 @@ remote modules.
 
 Use a dedicated module for persistent system paths, registration, privileged
 helpers, input methods, drivers, system extensions, or other state that package
-presence cannot represent. For Casks, a successful normal rebuild with no
-reported application problem remains the stopping condition unless the user
-explicitly requests lifecycle management.
+presence cannot represent. For a routine Cask addition, the bare declaration
+completes the task. Consider lifecycle management only for a reported problem
+that requires it or an explicit request for that management.
 
 Require lifecycle modules to be portable, idempotent, and convergent. Stage
 updates atomically, track ownership, refuse to overwrite unmanaged targets, and
@@ -253,8 +254,8 @@ consumer-specific `specialArgs`.
 
 ## Validate and report accurately
 
-For routine official Cask additions, report the bare declaration and the
-rebuild result. Do not run the checks below or collect detailed artifact and
+For routine official Cask additions, report the bare declaration and that no
+build was run. Do not run the checks below or collect detailed artifact and
 signature metadata just to produce a longer report.
 
 Use strict validation for custom packages, catalog/overlay/module/updater

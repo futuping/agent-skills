@@ -1,26 +1,27 @@
 # Compatibility decision guide
 
-Use the ordinary workflow for an existing official Cask. Consult the detailed
-decisions below when a rebuild or actual use fails, the user requests a strict
-audit, or the task changes custom packaging, catalog metadata, overlays,
-lifecycle modules, or updaters.
+For an existing official Cask, the ordinary workflow ends at its bare
+declaration. Consult the detailed decisions below when the user reports a real
+rebuild or usage failure, requests a strict audit, or the task changes custom
+packaging, catalog metadata, overlays, lifecycle modules, or updaters.
 
 ## Consume an official cask directly
 
 When the app already has an official Homebrew Cask, add its bare token once to
-`flake-brew.nix` and perform the normal target Darwin rebuild.
-Use the requested or previously authorized rebuild mode, including activation
-when that mode authorizes it. Adding an official Cask authorizes this rebuild
-unless the user explicitly requests only an edit or asks to skip rebuilding;
-do not ask again. Without activation authorization, use `nix build --no-link`
-for the target system rebuild.
+`flake-brew.nix` and stop when the declaration is complete. Do not proactively
+build, rebuild, switch, update the lock, or ask whether to build. Do not use
+derivation evaluation, `nix flake check`, package builds, upstream asset or hash
+audits, architecture checks, or signature verification as alternative
+completion requirements.
 
-Do not run separate package and system builds, flake evaluations, upstream
-asset or hash audits, architecture checks, or signature verification as a
-preflight. After the requested rebuild succeeds, stop unless there is a
-reported usage problem or an explicit request for further work. A rebuild
-request does not authorize full lock updates, garbage collection, or deleting
-old generations; avoid wrappers that add those operations without authority.
+Build only when explicitly requested for the current work, or when the user
+reports a real failure and the authorized repair needs a build. An earlier
+rebuild request does not authorize builds for later app additions. Follow the
+mode authorized for the current work without asking again: use
+`nix build --no-link` without activation, and `switch` only when activation is
+authorized. A build request does not authorize full lock updates, garbage
+collection, or deleting old generations; avoid wrappers that add those
+operations without authority.
 
 PKG usage, installer scripts, system-path metadata, lifecycle hooks, or a
 signature warning do not by themselves justify developing `brew-nix-extra`.
@@ -67,9 +68,9 @@ ordinary application package.
 
 Use `brew-nix-extra` or another dedicated module only when an observed rebuild
 or usage failure requires lifecycle management, or the user explicitly
-requests management beyond package selection. A successful ordinary rebuild
-with no reported usage problem remains the stopping condition even when
-metadata mentions paths such as:
+requests management beyond package selection. For a routine official Cask
+addition, stop when the bare declaration is complete, even when metadata
+mentions paths such as:
 
 - `/Library/Input Methods`
 - `/Library/SystemExtensions`
@@ -111,7 +112,7 @@ concrete blocker, preserving authorization already given in the session:
 - installation would request new privacy, security, or administrator authority
   not already authorized by the user.
 
-Do not require a signature audit before an already authorized ordinary
-rebuild. If a diagnostic warning surfaces during the requested work, report
-its practical effect without treating it as permission to add packaging
-changes or expand activation beyond the authorized mode.
+The ordinary declaration requires no signature audit or rebuild. If a
+diagnostic warning surfaces during explicitly requested work or authorized
+fault repair, report its practical effect without treating it as permission
+to add packaging changes or expand activation beyond the authorized mode.

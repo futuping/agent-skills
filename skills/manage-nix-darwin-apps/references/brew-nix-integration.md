@@ -16,8 +16,8 @@
 ## Official cask package
 
 When the requested app already has an official Homebrew Cask, select its bare
-token directly. Use the qualified package path only in commands when a
-targeted evaluation or build is needed:
+token directly. Reserve the qualified package path for commands in explicitly
+requested validation, authorized fault repair, or custom integration work:
 
 ```nix
 pkgs.brewCasks.example
@@ -38,29 +38,27 @@ installation lifecycle behavior.
 
 1. Add the bare token once to `environment.systemPackages` in
    `flake-brew.nix`, preserving the surrounding formatting and unrelated work.
-2. Run the normal target Darwin rebuild in the mode authorized in the session.
-   Adding an official Cask authorizes this rebuild unless the user explicitly
-   requests only an edit or asks to skip rebuilding. Do not ask again or
-   replace it with separate package and system validation builds.
-3. After the requested rebuild succeeds, stop. Keep the direct declaration
-   unless there is a reported usage problem or an explicit request for further
-   work.
+2. Stop when the declaration is complete and report the edit. No build or
+   rebuild result is required to finish the addition.
 
-Do not insert separate flake checks, package builds, release or asset audits,
-architecture inspection, checksum recalculation, or signature verification
-before this ordinary workflow. Use the existing official metadata and lock;
-normal Nix source verification still applies. Quick local edit checks must
-not expand into repository-wide validation or dependency updates.
+Do not proactively build, rebuild, or switch the system. Do not substitute
+derivation evaluation, `nix flake check`, a package build, or release, asset,
+CLI, architecture, checksum, or signature inspection for the omitted rebuild.
+Keep the existing official metadata and lock unchanged. Limit routine checks
+to the intended declaration and diff; do not ask whether the user wants a
+build or expand the edit into dependency updates.
 
-Activation follows the requested or previously established rebuild mode:
-perform an authorized switch without another permission pause, and preserve a
-build-only request as build-only. Without activation authorization, use
-`nix build --no-link` for the target system rebuild. A rebuild request does not
-authorize a full lock update, garbage collection, or deletion of old
-generations. Avoid wrappers that add those operations unless they are
-separately authorized.
+Build only when the user explicitly requests building the current change, or
+reports a real failure and the authorized repair requires a build. A previous
+rebuild request for another addition is not standing authorization to build
+later additions. Carry out a build that is already within the current request
+or repair scope without asking again. Use `nix build --no-link` for an
+authorized build without activation; use `switch` only when the authorized
+mode includes activation. Building does not authorize full lock updates,
+garbage collection, or deletion of old generations. Avoid wrappers that add
+those operations unless they are separately authorized.
 
-If the rebuild fails or actual use reveals a problem, diagnose that concrete
+If the user reports an actual rebuild or usage failure, diagnose that concrete
 failure with the relevant checks below. Metadata mentioning installer scripts,
 system paths, lifecycle hooks, or unusual artifacts is not itself a reason to
 start an audit or develop `brew-api-extra` or `brew-nix-extra`.
@@ -215,8 +213,9 @@ programs.example.enable = true;
 
 A reusable module is appropriate when an observed rebuild or usage failure
 requires lifecycle management, or when the user explicitly requests that
-management. A successful ordinary rebuild with no reported usage problem is
-the stopping condition for a routine Cask addition. The module should:
+management. A routine official Cask addition ends when its bare declaration is
+complete; it does not require a rebuild to rule out lifecycle problems. The
+module should:
 
 - export `darwinModules.<token>`;
 - provide `programs.<token>.enable` and `programs.<token>.package`;
@@ -270,8 +269,9 @@ its implementation uses.
 
 ## Validation sequence
 
-The ordinary official Cask workflow above requires no separate validation
-gate. Use strict checks for a reported rebuild or usage failure, an explicitly
+The ordinary official Cask workflow above ends at the declaration, without a
+build or validation gate. Do not use no-build evaluation as a substitute.
+Use strict checks for a reported rebuild or usage failure, an explicitly
 requested audit, or changes to custom packaging, catalogs, overlays, lifecycle
 modules, and updaters. For diagnosis or an audit, choose checks that answer the
 actual question; do not automatically run the complete sequence.
@@ -301,16 +301,18 @@ For custom implementation changes, retain these applicable checks:
    expressions.
 
 For a concrete failure, requested audit, or custom packaging change, use a
-targeted package build with `nix build --no-link` when needed and authorized.
-Build the target Darwin system only when needed to reproduce or validate the
-integration problem. Inspect artifact layout, architecture, source hashes, or
-`codesign --verify --deep --strict` results when they bear on that work. There
-is no mandatory package-plus-system build pair.
+targeted package build with `nix build --no-link` only when explicitly
+requested or needed for the authorized repair of a reported failure. Apply
+the same scope to a target Darwin system build; an audit request alone is not
+blanket build authority. Inspect artifact layout, architecture, source hashes,
+or `codesign --verify --deep --strict` results when they bear on the authorized
+work. There is no mandatory package-plus-system build pair.
 
 When builds are excluded, use no-build evaluation or an existing exact output
 only as needed for the requested diagnosis or audit. Report what was checked
-and what remains unverified. Do not activate solely as a diagnostic step;
-activation still follows the authorized rebuild mode.
+and what remains unverified. This does not apply to routine declaration-only
+additions. Do not activate solely as a diagnostic step; activation follows the
+mode authorized for the current work.
 
 ## Signing policy
 
@@ -339,7 +341,7 @@ into a prerequisite audit for a routine official Cask addition.
 
 | Artifact or behavior | Handling |
 | --- | --- |
-| Official `.app`, binary, or `.pkg` | Select the bare token and run the requested ordinary rebuild; stop on success without a reported usage problem |
+| Official `.app`, binary, or `.pkg` | Add the bare token and stop; diagnose only a reported problem or explicitly requested further work |
 | Plain non-official `.app` bundle | Add or reuse a narrow catalog adapter |
 | Reproducible package defect needing a reusable correction | Export and validate a focused package-normalization overlay |
 | Missing or unusable command reported in actual use | Inspect the generated executable layout and address the demonstrated defect |
