@@ -3,7 +3,7 @@
 ## Contents
 
 - [Official cask package](#official-cask-package)
-- [Official direct-build gate](#official-direct-build-gate)
+- [Ordinary official Cask workflow](#ordinary-official-cask-workflow)
 - [Consumer file boundaries](#consumer-file-boundaries)
 - [Third-party metadata catalog](#third-party-metadata-catalog)
 - [Package-normalization overlay](#package-normalization-overlay)
@@ -15,8 +15,9 @@
 
 ## Official cask package
 
-When Homebrew publishes the cask and brew-nix supports its artifact, use the
-qualified package path only for evaluation or build commands:
+When the requested app already has an official Homebrew Cask, select its bare
+token directly. Use the qualified package path only in commands when a
+targeted evaluation or build is needed:
 
 ```nix
 pkgs.brewCasks.example
@@ -33,23 +34,36 @@ environment.systemPackages = with pkgs.brewCasks; [
 Keep official metadata authoritative even when a dedicated module must add
 installation lifecycle behavior.
 
-## Official direct-build gate
+## Ordinary official Cask workflow
 
-Before creating an overlay or lifecycle module for an official Cask:
+1. Add the bare token once to `environment.systemPackages` in
+   `flake-brew.nix`, preserving the surrounding formatting and unrelated work.
+2. Run the normal target Darwin rebuild in the mode authorized in the session.
+   Adding an official Cask authorizes this rebuild unless the user explicitly
+   requests only an edit or asks to skip rebuilding. Do not ask again or
+   replace it with separate package and system validation builds.
+3. After the requested rebuild succeeds, stop. Keep the direct declaration
+   unless there is a reported usage problem or an explicit request for further
+   work.
 
-1. Add the bare token to `environment.systemPackages` in `flake-brew.nix`.
-2. Run formatting, `git diff --check`, and a no-build flake evaluation.
-3. Build `darwinConfigurations.<host>.pkgs.brewCasks.<token>` with
-   `nix build --no-link`.
-4. Build `darwinConfigurations.<host>.system` with `nix build --no-link`.
-5. Inspect the package output for the expected application, binary, or package
-   artifact when available.
+Do not insert separate flake checks, package builds, release or asset audits,
+architecture inspection, checksum recalculation, or signature verification
+before this ordinary workflow. Use the existing official metadata and lock;
+normal Nix source verification still applies. Quick local edit checks must
+not expand into repository-wide validation or dependency updates.
 
-If both builds succeed and the expected artifact exists, stop. Keep the bare
-declaration and do not develop `brew-api-extra` or `brew-nix-extra`. Treat Cask
-installer scripts, system paths, lifecycle hooks, and signature results as
-diagnostic information rather than reasons to replace a successful direct
-integration. Do not run `darwin-rebuild switch` for this gate.
+Activation follows the requested or previously established rebuild mode:
+perform an authorized switch without another permission pause, and preserve a
+build-only request as build-only. Without activation authorization, use
+`nix build --no-link` for the target system rebuild. A rebuild request does not
+authorize a full lock update, garbage collection, or deletion of old
+generations. Avoid wrappers that add those operations unless they are
+separately authorized.
+
+If the rebuild fails or actual use reveals a problem, diagnose that concrete
+failure with the relevant checks below. Metadata mentioning installer scripts,
+system paths, lifecycle hooks, or unusual artifacts is not itself a reason to
+start an audit or develop `brew-api-extra` or `brew-nix-extra`.
 
 ## Consumer file boundaries
 
@@ -132,8 +146,10 @@ affected derivation using `brew-nix-extra`'s own locked inputs.
 
 ## Package-normalization overlay
 
-Use an overlay when the official direct-build gate fails and a generated
-ordinary package needs a reusable override but does not need activation state:
+Use an overlay when a reproducible rebuild or usage failure establishes that
+a generated package needs a reusable correction without activation state.
+A requested audit may also establish such a defect; do not introduce an
+overlay speculatively from metadata alone:
 
 ```nix
 normalizedPackage = sourcePackage.overrideAttrs (oldAttrs: {
@@ -197,9 +213,10 @@ Keep per-host configuration declarative:
 programs.example.enable = true;
 ```
 
-A reusable module is appropriate only after the direct-build gate fails for a
-lifecycle reason, or when the user explicitly requests lifecycle management.
-It should:
+A reusable module is appropriate when an observed rebuild or usage failure
+requires lifecycle management, or when the user explicitly requests that
+management. A successful ordinary rebuild with no reported usage problem is
+the stopping condition for a routine Cask addition. The module should:
 
 - export `darwinModules.<token>`;
 - provide `programs.<token>.enable` and `programs.<token>.package`;
@@ -216,8 +233,10 @@ unmarked target.
 
 ## Lock sequence
 
-Close and publish every dependency edge before updating the next dependent
-repository:
+For changes to custom catalogs, packages, overlays, lifecycle modules, or
+updaters, close and publish each changed dependency edge before updating its
+consumer. An ordinary official Cask declaration does not require this sequence
+or a lock update:
 
 1. Validate and publish `brew-api-extra` when its registry, adapter, or
    generated catalog changes.
@@ -251,57 +270,54 @@ its implementation uses.
 
 ## Validation sequence
 
-Always:
+The ordinary official Cask workflow above requires no separate validation
+gate. Use strict checks for a reported rebuild or usage failure, an explicitly
+requested audit, or changes to custom packaging, catalogs, overlays, lifecycle
+modules, and updaters. For diagnosis or an audit, choose checks that answer the
+actual question; do not automatically run the complete sequence.
+
+For custom implementation changes, retain these applicable checks:
 
 1. Run Nix formatting checks.
 2. Run `git diff --check`.
-3. Run `nix flake check --no-build --no-update-lock-file` from each changed
+3. Run parsing checks and updater or adapter tests when those files change,
+   using the repository's locked maintainer entry point.
+4. Run `nix flake check --no-build --no-update-lock-file` from each changed
    remote repository root, without consumer overrides. Add `--all-systems`
    when the full flake is safe to evaluate in clean CI; otherwise follow
    [maintainer-environments.md](maintainer-environments.md) and explicitly
    force every changed cross-system output without silently dropping coverage.
-4. Force every catalog token and changed overlay/package capability under the
+5. Force every catalog token and changed overlay/package capability under the
    remote repository's own lock. A generic overlay function check is not
    sufficient.
-5. Confirm read-only push/pull-request CI runs the same standalone check and
+6. Confirm read-only push/pull-request CI runs the same standalone check and
    probes before updating the consumer lock.
-6. Run the consumer flake check and evaluate the target Darwin system
-   derivation without activation.
-7. Inspect `flake-brew.nix` and reject non-bare Cask entries, including
+7. When the consumer integration changes, run its flake check and evaluate the
+   target Darwin system derivation. These checks do not require activation.
+8. Inspect the focused consumer lists for duplicate declarations and reject
+   non-bare Cask entries in `flake-brew.nix`, including
    `pkgs.brewCasks.<token>`, `inputs.*.packages.*`, generated namespaces,
    inline derivations, interpolated paths, and aliases for qualified package
    expressions.
 
-For every official Cask unless builds were explicitly excluded:
+For a concrete failure, requested audit, or custom packaging change, use a
+targeted package build with `nix build --no-link` when needed and authorized.
+Build the target Darwin system only when needed to reproduce or validate the
+integration problem. Inspect artifact layout, architecture, source hashes, or
+`codesign --verify --deep --strict` results when they bear on that work. There
+is no mandatory package-plus-system build pair.
 
-1. Build the selected package with `nix build --no-link`.
-2. Build the complete target Darwin system with `nix build --no-link`.
-3. Confirm the expected artifact exists.
-4. Stop without extra development when those checks succeed.
-
-When additional inspection is useful:
-
-1. Build the smallest affected package before considering a full system build.
-2. Inspect the resulting bundle or artifact layout.
-3. Run `codesign --verify --deep --strict` on final app bundles. After a
-   successful direct-build gate, report failures as caveats rather than using
-   them alone to justify extra development.
-
-When building is explicitly excluded:
-
-1. Evaluate the package derivation and output path.
-2. If the exact output is already valid in the Nix store, inspect it and verify
-   its signature.
-3. Report clearly that no new build or activation ran.
-
-Do not activate merely to discover whether evaluation or building succeeds.
-In particular, never run `darwin-rebuild switch` for the direct-build gate.
+When builds are excluded, use no-build evaluation or an existing exact output
+only as needed for the requested diagnosis or audit. Report what was checked
+and what remains unverified. Do not activate solely as a diagnostic step;
+activation still follows the authorized rebuild mode.
 
 ## Signing policy
 
-Apply this policy when direct integration fails and extra normalization is
-actually required. A diagnostic signature failure after successful package and
-Darwin system builds does not itself authorize an overlay or module.
+Apply this policy when diagnosing a reported failure, performing a requested
+signature audit, or changing custom packaging or signing. It does not add a
+signature preflight to ordinary official Cask selection. A diagnostic warning
+alone does not authorize re-signing or expanding the integration scope.
 
 - Preserve a Developer ID signature only after strict verification proves it
   remains valid in the packaged result.
@@ -317,17 +333,16 @@ Darwin system builds does not itself authorize an overlay or module.
 
 ## Artifact compatibility
 
-brew-nix commonly models ordinary `app`, `binary`, and `pkg` artifacts. A
-matching JSON shape does not guarantee correct macOS lifecycle behavior.
+brew-nix commonly models ordinary `app`, `binary`, and `pkg` artifacts. Use
+this table during fault diagnosis or custom integration work; do not turn it
+into a prerequisite audit for a routine official Cask addition.
 
 | Artifact or behavior | Handling |
 | --- | --- |
-| Plain official `.app` bundle | Consume `pkgs.brewCasks.<token>` |
+| Official `.app`, binary, or `.pkg` | Select the bare token and run the requested ordinary rebuild; stop on success without a reported usage problem |
 | Plain non-official `.app` bundle | Add or reuse a narrow catalog adapter |
-| Ordinary package needing a narrow reusable override | Export a package-normalization overlay |
-| Standalone binary | Verify generated executable layout |
-| Official `.pkg` installer whose package and system builds succeed | Keep the bare declaration; report scripts and system paths as caveats |
-| `.pkg` whose direct build fails | Inspect scripts and system paths, then choose the narrowest required extra layer |
-| Input method | Use a dedicated nix-darwin module for `/Library/Input Methods` |
-| System extension, driver, privileged helper | Try the official direct-build gate first; use a lifecycle module only after failure or an explicit lifecycle request |
+| Reproducible package defect needing a reusable correction | Export and validate a focused package-normalization overlay |
+| Missing or unusable command reported in actual use | Inspect the generated executable layout and address the demonstrated defect |
+| `.pkg` with an observed rebuild or usage failure | Inspect the relevant scripts and paths, then choose the narrowest required correction |
+| Input method, system extension, driver, or privileged helper | Use a lifecycle module only for an observed lifecycle problem or an explicit lifecycle request |
 | Login/logout or approval requirement | Report it explicitly; do not hide it in rebuild behavior |

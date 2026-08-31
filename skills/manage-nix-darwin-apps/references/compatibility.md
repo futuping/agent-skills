@@ -1,15 +1,29 @@
 # Compatibility decision guide
 
-Classify metadata availability and lifecycle requirements separately.
+Use the ordinary workflow for an existing official Cask. Consult the detailed
+decisions below when a rebuild or actual use fails, the user requests a strict
+audit, or the task changes custom packaging, catalog metadata, overlays,
+lifecycle modules, or updaters.
 
 ## Consume an official cask directly
 
-Use `pkgs.brewCasks.<token>` when the Cask is present in the official Homebrew
-API. Add its bare token to `flake-brew.nix`, then build both the selected
-package and target Darwin system without activation. When both builds succeed
-and the expected artifact exists, keep the direct declaration and stop. Do not
-develop `brew-nix-extra` based only on PKG usage, installer scripts, system-path
-metadata, lifecycle hooks, or a signature warning.
+When the app already has an official Homebrew Cask, add its bare token once to
+`flake-brew.nix` and perform the normal target Darwin rebuild.
+Use the requested or previously authorized rebuild mode, including activation
+when that mode authorizes it. Adding an official Cask authorizes this rebuild
+unless the user explicitly requests only an edit or asks to skip rebuilding;
+do not ask again. Without activation authorization, use `nix build --no-link`
+for the target system rebuild.
+
+Do not run separate package and system builds, flake evaluations, upstream
+asset or hash audits, architecture checks, or signature verification as a
+preflight. After the requested rebuild succeeds, stop unless there is a
+reported usage problem or an explicit request for further work. A rebuild
+request does not authorize full lock updates, garbage collection, or deleting
+old generations; avoid wrappers that add those operations without authority.
+
+PKG usage, installer scripts, system-path metadata, lifecycle hooks, or a
+signature warning do not by themselves justify developing `brew-nix-extra`.
 
 Do not duplicate an official cask in `brew-api-extra` solely to work around
 unsupported installation semantics. Keep official version, URL, and hash
@@ -32,8 +46,9 @@ differs. An adapter is a metadata parser, not a macOS installer.
 
 ## Use a package-normalization overlay
 
-Use a focused overlay only when the direct package or Darwin system build fails
-and the derivation needs a reusable package-only adjustment such as:
+Use a focused overlay when a reproducible rebuild or usage failure, including
+a defect established during a requested audit, shows that the derivation needs
+a reusable package-only adjustment such as:
 
 - deterministic archive normalization;
 - a bundle-specific extraction correction;
@@ -50,11 +65,11 @@ ordinary application package.
 
 ## Require a dedicated nix-darwin module
 
-Use `brew-nix-extra` or another dedicated module only when the official direct
-build has a reproducible lifecycle-related failure, or the user explicitly
-requests management beyond package selection. A successful package and Darwin
-system build remains the stopping condition even when metadata mentions paths
-such as:
+Use `brew-nix-extra` or another dedicated module only when an observed rebuild
+or usage failure requires lifecycle management, or the user explicitly
+requests management beyond package selection. A successful ordinary rebuild
+with no reported usage problem remains the stopping condition even when
+metadata mentions paths such as:
 
 - `/Library/Input Methods`
 - `/Library/SystemExtensions`
@@ -79,18 +94,24 @@ application-specific workarounds.
 
 ## Stop for review
 
-Stop and explain the blocker when:
+The following are blockers for the relevant proposed custom integration,
+diagnosis, or audit; they are not a preflight checklist for unchanged official
+Cask metadata. Complete safe, reviewable work first and pause only at a
+concrete blocker, preserving authorization already given in the session:
 
-- the upstream checksum is absent or mutable;
-- a URL redirects to an unreviewed host;
+- a custom source cannot be pinned or its required checksum is absent or
+  mutable;
+- a custom download URL redirects to an unreviewed host;
 - the Ruby cask must be executed to discover essential values;
 - the download requires interactive authentication;
 - signing or notarization state cannot be established and the proposed work
-  would re-sign, normalize, activate, or otherwise expand beyond the successful
-  direct-build path;
+  would re-sign or materially rewrite the bundle beyond ordinary Cask
+  consumption;
 - the lifecycle would overwrite an unmanaged system component;
 - installation would request new privacy, security, or administrator authority
   not already authorized by the user.
 
-A signature diagnostic failure after successful direct builds is a reported
-caveat, not permission to develop extra or activate the system.
+Do not require a signature audit before an already authorized ordinary
+rebuild. If a diagnostic warning surfaces during the requested work, report
+its practical effect without treating it as permission to add packaging
+changes or expand activation beyond the authorized mode.

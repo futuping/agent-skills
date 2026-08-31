@@ -11,6 +11,29 @@ consumer configuration. Classify the application before editing so the user
 does not need to know whether it belongs to nixpkgs, brew-nix, or an independent
 package repository.
 
+## Default for an official Cask
+
+When the application already has an official Homebrew Cask, use the ordinary
+declaration-and-rebuild workflow. A supplied `formulae.brew.sh/cask/<token>`
+page or an entry in the existing official catalog is enough to choose this
+route; do not first compare nixpkgs packages or audit upstream releases.
+
+1. Check the existing application declarations to avoid adding a duplicate.
+2. Add only the bare token, such as `coteditor`, to `flake-brew.nix` under
+   `with pkgs.brewCasks`.
+3. Run the normal target Darwin rebuild in the mode authorized by the user.
+   Keep the existing lock unless a missing token or a concrete failure requires
+   a focused input update. Honor requests to edit only or skip rebuilding.
+4. If the rebuild succeeds and no application problem is reported, stop.
+   Perform strict checks only after a rebuild or use failure, or when the user
+   explicitly requests an audit.
+
+Do not add preliminary `nix flake check` or derivation evaluations, a separate
+package build, manual version/hash comparisons, bundle/CLI/architecture
+inspection, or `codesign` verification to this routine path. The normal rebuild
+already performs Nix's source verification. Do not create an overlay, catalog
+entry, or lifecycle module in anticipation of a possible problem.
+
 ## Preserve worktrees and authority
 
 1. Inspect every relevant worktree before editing. Preserve unrelated and
@@ -30,10 +53,16 @@ package repository.
    points, not a user or runner's ambient language runtime or package path.
 5. Publish reusable remote implementation before locking the consumer. Never
    point a consumer lock at an unpublished worktree.
-6. Never activate the Darwin system unless the user explicitly requests it.
+6. Respect the rebuild mode authorized in the current session. A request to
+   add and rebuild already authorizes that rebuild; do not ask again. Activate
+   with `switch` only when activation is requested or already authorized.
+   Rebuilding alone does not authorize a full lock update, generation deletion,
+   or garbage collection through a convenience wrapper.
 7. Apply build authority by route:
-   - Treat a request to add an official Cask as authorization for non-activating
-     package and system builds unless the user excludes builds.
+   - Treat a request to add an official Cask as authorization for the normal
+     target system rebuild unless the user excludes it. Without activation
+     authorization, use `nix build --no-link` for that rebuild; do not add a
+     separate package build as a validation gate.
    - Build native nixpkgs or independent packages only when the user authorizes
      building.
 
@@ -83,10 +112,14 @@ presence. It is not an alternative syntax for selecting an ordinary app.
 
 ## Inspect and route
 
+Use the official Cask workflow above as soon as that source is established.
+For an application whose source still needs to be classified:
+
 1. Check the pinned nixpkgs package set for an adequate package.
 2. Check the pinned official Homebrew API exposed by brew-nix, then any pinned
    third-party catalog.
-3. Read official upstream release metadata and documentation. Identify the
+3. For custom packaging or troubleshooting, read official upstream release
+   metadata and documentation. Identify the
    stable release rule, exact architecture asset, URL and redirect hosts,
    checksum, archive type, bundle or executable name, license, and signing
    identity.
@@ -97,17 +130,18 @@ presence. It is not an alternative syntax for selecting an ordinary app.
 | Application state | Route |
 | --- | --- |
 | Adequate pinned nixpkgs package | Select its bare attribute in `flake-nixpkgs.nix` |
-| Official Cask | Run the official Cask direct-build gate |
+| Official Cask | Declare its bare token and run the normal Darwin rebuild |
 | Cask missing from the official API | Publish metadata through `brew-api-extra`, then expose its bare token through `brew-nix-extra` |
-| Cask needs a reproducible package-only correction after direct failure | Publish a focused `brew-nix-extra` overlay |
+| Cask needs a reproducible package-only correction after a rebuild or use failure | Publish a focused `brew-nix-extra` overlay |
 | Ordinary non-Homebrew app or binary | Publish package, overlay, and thin module through `futuping/nix-packages` |
 | Private or experimental package | Keep focused implementation temporarily, but still expose a bare consumer attribute |
 | Genuine system lifecycle state | Use a purpose-built nix-darwin module |
 
-Read only the references required by the chosen route, but read each selected
+The routine official Cask workflow is complete above. Read the following
+references only for the additional work they describe, and read each selected
 reference completely before acting:
 
-- For any Cask route, read
+- For a Cask failure, custom catalog, or packaging change, read
   [references/brew-nix-integration.md](references/brew-nix-integration.md).
 - Before choosing a Cask overlay or lifecycle module, also read
   [references/compatibility.md](references/compatibility.md).
@@ -123,9 +157,9 @@ reference completely before acting:
   read
   [references/maintainer-environments.md](references/maintainer-environments.md).
 
-For a Cask, run its direct-build gate before treating system paths, installer
-scripts, lifecycle metadata, or signature warnings as reasons to build an
-extra integration layer.
+For a Cask, let the normal rebuild and actual use determine whether additional
+integration is needed. Metadata alone is not a reason to start strict checks
+or develop an extra layer.
 
 ## Use the native nixpkgs route
 
@@ -138,16 +172,9 @@ extra integration layer.
 
 ## Use the Homebrew Cask route
 
-For an official Cask:
-
-1. Add only the bare token to `flake-brew.nix` under `with pkgs.brewCasks`.
-2. Run formatting, `git diff --check`, and a no-build flake evaluation.
-3. Build the selected package with `nix build --no-link` unless builds were
-   excluded.
-4. Build the target Darwin system with `nix build --no-link`; never switch to
-   it for validation.
-5. Confirm the expected app, binary, or package artifact exists. If both builds
-   succeed, stop without developing `brew-api-extra` or `brew-nix-extra`.
+For an official Cask, follow the declaration-and-rebuild workflow above.
+The remaining guidance applies when a failure or custom packaging work needs
+more than the bare declaration.
 
 Keep official metadata authoritative. Do not duplicate an official Cask in
 `brew-api-extra` to work around installation behavior.
@@ -159,8 +186,8 @@ Treat the generated package expression as remote implementation only; expose
 the reviewed token through the existing or a focused `brew-nix-extra` overlay
 and thin module so the consumer still selects a bare token.
 
-Create a package-normalization overlay only after a reproducible direct package
-or system build failure demonstrates that it is required. Merge into
+Create a package-normalization overlay only after a reproducible rebuild or
+application failure demonstrates that it is required. Merge into
 `prev.brewCasks`; never replace the namespace. Publish in this order when each
 layer changes:
 
@@ -200,9 +227,9 @@ remote modules.
 
 Use a dedicated module for persistent system paths, registration, privileged
 helpers, input methods, drivers, system extensions, or other state that package
-presence cannot represent. For Casks, the successful direct-build gate remains
-the stopping condition unless the user explicitly requests lifecycle
-management.
+presence cannot represent. For Casks, a successful normal rebuild with no
+reported application problem remains the stopping condition unless the user
+explicitly requests lifecycle management.
 
 Require lifecycle modules to be portable, idempotent, and convergent. Stage
 updates atomically, track ownership, refuse to overwrite unmanaged targets, and
@@ -226,7 +253,15 @@ consumer-specific `specialArgs`.
 
 ## Validate and report accurately
 
-Always:
+For routine official Cask additions, report the bare declaration and the
+rebuild result. Do not run the checks below or collect detailed artifact and
+signature metadata just to produce a longer report.
+
+Use strict validation for custom packages, catalog/overlay/module/updater
+changes, migrations, a concrete rebuild or application failure, or an explicit
+audit request. During troubleshooting, start with the failing operation and
+run only the checks relevant to its cause; do not automatically run every check
+below. For reusable packaging changes, apply the relevant gates:
 
 1. Run package-updater tests and JSON/YAML parsing when those files change.
    Use the repository's locked maintainer entry point when it has one.
@@ -263,8 +298,8 @@ Run builds only under the route-specific authority stated above. Distinguish a
 no-build evaluation, inspection of an existing store output, a new build, and
 system activation in the final report. Never imply that a skipped check ran.
 
-Finish dependency repositories before the consumer. Confirm every repository
-changed by the task is clean and synchronized. Report the selected route,
-upstream version and asset, package attribute or Cask token, source and hash
-policy, signature handling, published revisions, validation performed, and any
-intentionally skipped build or activation.
+Finish dependency repositories before the consumer. When publication is
+requested, commit and push the intended changes and confirm synchronization.
+Otherwise preserve uncommitted work. Report detailed versions, assets, hashes,
+signatures, and published revisions only when relevant to the packaging or
+diagnostic work actually performed. Never imply that skipped checks ran.
