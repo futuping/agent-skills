@@ -1,9 +1,14 @@
-# Agent Access setup and execution
+# Fallback: Agent Access setup and execution
 
-The primary route uses official `aac run`, a local Node child, a one-use Unix
-socket, and the existing ego runtime. It does not scrape the unlocked extension
-or export the vault. The original extension fallback remains available by
-explicit choice.
+Use this route when the primary background extension path is unavailable, or
+the user explicitly selects Agent Access. It uses official `aac run`, a local
+Node child, a one-use Unix socket and the existing ego runtime. It remains in
+the background and does not use the system clipboard.
+
+Reuse a live paired provider. Do not start Terminal/Warp, foreground ego, or
+restart the website login when switching routes. If the provider needs user
+attention, explain the required terminal action in chat and wait. An unlocked
+extension does not require this setup when the primary route works.
 
 ## Runtime and one-time user setup
 
@@ -73,8 +78,12 @@ Future `aac run` invocations can reuse the cached connection. If there
 are several, set the intended public session fingerprint in the plan.
 
 When a credential request arrives, verify the displayed website and account.
-The provider supports one-time approval or a user-selected, time-limited approval
-cache for that requester/query. The agent must not press approval keys for real
+In version 0.11.0, `y` approves once and `a` approves with the displayed cache
+duration (initially ten minutes). Up adds five minutes; down subtracts one.
+The cache is scoped to requester/query and disappears on provider restart;
+there is no built-in permanent per-item approval setting. The user can choose
+a longer session duration in this interface. Pairing persistence does not mean
+credential approval persists. The agent must not press approval keys for real
 credentials or enable blanket approval. The test harness only does this for the
 official public **example** provider and refuses an existing Agent Access state
 directory.
@@ -95,41 +104,10 @@ const guardIdentifier = await prepareBackground(task, page);
 // Navigate now; observe the login controls without extracting secrets.
 ```
 
-Save a plan in a private local directory such as `~/.cache/bitwarden-login/`,
-with directory mode 0700 and file mode 0600. It contains routing metadata, not
-credentials. A minimal example (replace with observed selectors):
-
-```json
-{
-  "version": 1,
-  "spaceId": 7,
-  "pageLabel": "p1",
-  "username": "user@example.com",
-  "origin": "https://accounts.example.com",
-  "query": { "id": "00000000-0000-0000-0000-000000000001" },
-  "states": [
-    {
-      "name": "password",
-      "match": { "origin": "https://accounts.example.com", "selector": "#password" },
-      "fill": [{ "source": "password", "selector": "#password" }],
-      "click": { "selector": "button[type=submit]" }
-    },
-    {
-      "name": "signed_in",
-      "match": { "origin": "https://accounts.example.com", "selector": "#account", "text": "$username" },
-      "result": "success"
-    }
-  ]
-}
-```
-
-Add `guardIdentifier` from preparation when a hook is already installed. A
-`query.domain` can replace `query.id` for a unique domain match. The actual
-credential URI must still match `origin` exactly, and its username must match
-the intended account. State matchers require one visible CSS match. Optional
-`text` matches its text/accessible label, and `pathPrefix` narrows its URL path.
-Terminal states are `success`, `human_required` or `rejected`. TOTP fields use
-`"source": "totp"`. Success must include `"text": "$username"`.
+Build the [shared login plan](login-plan.md). Keep the same task/page and plan
+when falling back from the extension, provided it reported `fallbackAllowed`.
+Update selectors only from current observations; do not resubmit a password/code
+or retry website rejection by switching routes.
 
 Run without putting any credential in the command:
 
@@ -203,7 +181,7 @@ TOTP challenge recorded in the page's navigation history. The executor verified
 the requested account on its signed-in page, removed the temporary guard, and
 the agent closed the test space. ego remained out of the foreground. Personal
 account names and vault IDs are intentionally excluded from this repository.
-The earlier extension-fallback test is separate from this Agent Access result.
+The extension route's tests are separate from this Agent Access result.
 
 Official references: [Agent Access](https://github.com/bitwarden/agent-access),
 [Bitwarden CLI](https://bitwarden.com/help/cli/),

@@ -48,6 +48,21 @@ export function applyAction({ origin, fields, click }) {
 export async function runPlan(page, plan, credential) {
   validatePlan(plan);
   validateCredential(plan, credential);
+  return runWithValues(page, plan, async source => {
+    if (source !== 'totp') return credential[source];
+    let generated = totp(credential.totp);
+    if (generated.remainingMs < 5000) {
+      await new Promise(resolve => setTimeout(resolve, generated.remainingMs + 50));
+      generated = totp(credential.totp);
+    }
+    return generated.code;
+  });
+}
+
+// A value supplier runs locally and only when the verified destination is ready.
+// onSubmit lets adapters prohibit route changes after a credential submission.
+export async function runWithValues(page, plan, getValue, onSubmit = () => {}) {
+  validatePlan(plan);
   const started = Date.now();
   const args = { states: plan.states, username: plan.username };
   const visits = new Map();
@@ -68,23 +83,18 @@ export async function runPlan(page, plan, credential) {
     if (visits.get(name) > limit) fail('repeated_step');
     if (new URL(await page.url()).origin !== state.match.origin) fail('origin_changed');
     const fields = [];
-    for (const field of state.fill || []) {
-      let value = credential[field.source];
-      if (field.source === 'totp') {
-        let generated = totp(credential.totp);
-        if (generated.remainingMs < 5000) {
-          // Wait only for the known code boundary; do not submit an expiring code.
-          await new Promise(resolve => setTimeout(resolve, generated.remainingMs + 50));
-          generated = totp(credential.totp);
-        }
-        value = generated.code;
-      }
-      if (!value) fail(`missing_${field.source}`);
-      fields.push({ selector: field.selector, value });
-    }
     let result;
-    try { result = await page.evaluate(applyAction, { origin: state.match.origin, fields, click: state.click }); }
-    catch { throw new LoginError('interaction_failed'); }
+    try {
+      for (const field of state.fill || []) {
+        const value = await getValue(field.source);
+        if (!value) fail(`missing_${field.source}`);
+        fields.push({ selector: field.selector, value });
+      }
+      // Mark before dispatch: a transport error may arrive after a real click.
+      if (state.fill?.some(f => f.source !== 'username')) onSubmit();
+      try { result = await page.evaluate(applyAction, { origin: state.match.origin, fields, click: state.click }); }
+      catch { throw new LoginError('interaction_failed'); }
+    }
     finally { for (const field of fields) field.value = ''; }
     if (!result?.ok) fail(result?.status || 'interaction_failed');
     previous = name;

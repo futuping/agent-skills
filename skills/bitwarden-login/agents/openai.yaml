@@ -1,4 +1,4 @@
 interface:
   display_name: "Bitwarden Login"
-  short_description: "Background website login through Bitwarden Agent Access"
-  default_prompt: "Use $bitwarden-login with Agent Access to sign in to the requested website in ego lite, keeping it in the background and credentials out of the conversation."
+  short_description: "Silent Bitwarden extension login with Agent Access fallback"
+  default_prompt: "Use $bitwarden-login to sign in to the requested website in background ego lite. Try the unlocked browser extension first, use Agent Access as fallback, and keep credentials out of the conversation and system clipboard."
