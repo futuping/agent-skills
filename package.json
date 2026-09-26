@@ -1,0 +1,7 @@
+{
+  "name": "futuping-agent-skills",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24 <25" },
+  "scripts": { "test": "node --test tests/*.test.mjs" }
+}
