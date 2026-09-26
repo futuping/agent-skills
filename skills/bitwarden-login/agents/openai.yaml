@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bitwarden Login"
+  short_description: "Fast website login with Bitwarden passwords and TOTP"
+  default_prompt: "Use $bitwarden-login to sign in to the requested website with my existing Bitwarden login, keeping passwords and TOTP out of the conversation."
