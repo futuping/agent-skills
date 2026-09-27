@@ -7,7 +7,7 @@ Reusable Codex skills maintained by futuping.
 - [`bitwarden-login`](skills/bitwarden-login): sign in through the unlocked
   Bitwarden extension first, with official Agent Access as fallback. Both
   adapters keep ego lite in the background and credentials out of model output
-  and the system clipboard.
+  and the system clipboard, while preserving the user's active ego windows.
 - [`manage-nix-darwin-apps`](skills/manage-nix-darwin-apps): classify,
   package, publish, update, and integrate Homebrew and non-Homebrew macOS
   applications with nix-darwin.

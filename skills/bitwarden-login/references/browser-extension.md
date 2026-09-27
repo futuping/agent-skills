@@ -6,8 +6,10 @@ provider terminal or approval cache.
 
 ## Select one item
 
-Keep one temporary **agent-created** extension page in the same minimized task
-space as the sign-in page. Discover the enabled Bitwarden extension once from
+Keep one temporary **agent-created** extension page in the same task space as
+the sign-in page. Preserve the user's windows: while ego is foreground, do not
+hide or minimize anything to simulate background execution. Both routes use
+the shared window checks in `prepareBackground`. Discover the enabled extension from
 `chrome://extensions/`, or reuse its verified ID. The observed Chrome Web Store
 ID is `nngceckbapebfimnlniiiahkandclblb`; version 2026.9.2 exposes:
 
@@ -113,6 +115,14 @@ count and foreground application again stayed unchanged. This validates the
 new transfer path and bounded form engine; it is not a new Google login test.
 The prior Google test using native paste is not evidence of this route being
 silent. Other websites and extension versions may require different selectors.
+
+On 2026-09-27, the window-preservation regression ran a synthetic form login
+and verified WebAuthn cancellation with two real ego windows present. Both
+windows' bounds/state, application visibility and the foreground application
+were unchanged. A simulated foreground-ego condition also skipped minimization;
+the test did not activate ego or interrupt the user's app to reproduce it.
+Unit tests cover foreground changes during discovery, shared/unowned windows,
+full-screen preservation and unavailable ownership metadata.
 
 [Bitwarden's autofill documentation](https://bitwarden.com/help/auto-fill-browser/)
 describes its supported copy/autofill controls. This repository's memory hook

@@ -22,8 +22,13 @@ user-control rules. The execution adapter requires ego-browser API v2, Node.js
    email match alone does not identify the right website credential.
 2. For background operation, call `prepareBackground(task, page)` from
    `scripts/background.mjs` **before navigating to the sign-in flow**. It
-   minimizes ego’s task window and installs a tab-local WebAuthn cancellation
-   hook. Carry its returned identifier into the login plan as `guardIdentifier`
+   preserves user windows and installs a tab-local WebAuthn cancellation hook.
+   It may minimize only a normal window containing exclusively this task's
+   agent-created tabs, and only when ego is not the foreground app. While the
+   user is using ego, or window ownership/activity is unclear, leave window
+   state alone and use background DOM interaction. Never hide the entire app,
+   minimize a shared window, or exit full screen to hide a task.
+   Carry its returned identifier into the login plan as `guardIdentifier`
    so the executor removes the hook on completion. If login is abandoned before
    running the executor, remove it with `removePasskeyGuard` or close the
    agent-created page.
@@ -59,7 +64,8 @@ possible password/code submission is a stop, not a reason to retry another
 route.
 
 Use the locked Nix `login` shell and reuse the single paired provider. The
-fallback also uses DOM filling, keeps ego minimized, and avoids the clipboard.
+fallback uses the same window-preserving preparation and DOM filling, and avoids
+the clipboard.
 Never open/activate Terminal or Warp automatically. If unlock, pairing, or
 approval is required, explain the one necessary action in chat and wait for
 the user; do not repeatedly restart providers or send approval requests.
@@ -83,10 +89,15 @@ browser; never solve a CAPTCHA or approve biometric/device prompts.
 
 ## Background limits
 
-The supported goal is to keep ego minimized during ordinary page operations.
+Background login means operating agent pages without changing the user's
+foreground app or hiding their ego windows. Keep an already minimized task
+window minimized; do not force the app out of view while the user is browsing.
 There is no documented headless task-space creation switch: first launch or a
-new task window may appear briefly before minimization. Preserve whichever app
-is in front; do not repeatedly activate Search or fight the user for focus.
+new task window may still appear. Preserve whichever app is in front; do not
+hide ego, repeatedly activate Search, or fight the user for focus. Full-screen
+and maximized windows are preserved to avoid disturbing macOS Spaces. The
+helper checks ownership/activity again before minimizing an eligible window;
+if discovery fails, it stops without changing window state.
 The adapter cannot silently approve provider access, unlock a vault, complete
 biometrics, or solve a CAPTCHA. Those steps require the user. If a website only
 supports a passkey, stop instead of manufacturing an assertion or bypassing it.

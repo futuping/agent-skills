@@ -153,8 +153,11 @@ is needed. Ordinary output is only a status such as:
   `cleanup_required` includes the original `loginStatus`.
 - The user controls real-vault unlock, pairing and approval. Once authorized,
   credential lookup and form execution run without an extension popout or
-  system clipboard. macOS window creation may still cause a brief initial
-  appearance; there is no verified fully headless ego API.
+  system clipboard. Shared preparation preserves user windows and leaves all
+  window state alone when ego is foreground. Only a verified exclusive normal
+  task window is eligible for minimization when ego is not foreground. It
+  never hides the entire application or exits full screen. macOS window creation
+  may still cause an initial appearance; there is no verified fully headless API.
 
 ## Verification scope
 
