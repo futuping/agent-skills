@@ -11,7 +11,7 @@ the sign-in page. Preserve the user's windows: while ego is foreground, do not
 hide or minimize anything to simulate background execution. Both routes use
 the shared window checks in `prepareBackground`. Discover the enabled extension from
 `chrome://extensions/`, or reuse its verified ID. The observed Chrome Web Store
-ID is `nngceckbapebfimnlniiiahkandclblb`; version 2026.9.2 exposes:
+ID is `nngceckbapebfimnlniiiahkandclblb`; versions 2026.9.2 and 2026.9.3 expose:
 
 ```text
 chrome-extension://<observed-extension-id>/popup/index.html
@@ -33,10 +33,13 @@ fields, notes or seeds. If the extension is locked or asks for a master-password
 reprompt, use the fallback or ask the user; never bypass that prompt.
 
 The route and English control labels are extension implementation details.
-The helper checks manifest version 2026.9.2 before invoking any copy control:
-a different build could move copying into a background worker outside the hook.
-Unexpected layout/language/version changes require inspection or fallback;
-do not guess selectors or grant extra extension/clipboard permissions.
+The two fixed-version checks are commented out at the user's request after
+inspection of the installed 2026.9.3 popup copy path. The manifest version is
+still diagnostic metadata; item/account/HTTPS-origin checks and clipboard hooks
+remain active. This does not validate future builds: copying could move into a
+background worker outside the hook. Inspect unexpected layout, language or copy
+behavior changes before using real credentials, or use the fallback; do not
+guess selectors or grant extra extension/clipboard permissions.
 
 ## Execute once
 
@@ -100,6 +103,32 @@ if the Agent Access fallback needs attention, leave ego hidden and notify the
 user in chat rather than opening a terminal.
 
 ## Verification scope
+
+On 2026-10-18, the installed extension manifest reported 2026.9.3. Its public
+popup bundle (`main.js`, SHA-256
+`6a3a1362b3e9c3f93679dc6c03570c0dba419994c414afeb0d9c584376f1dbee`)
+retains the adapter's item route, username/Website controls, English copy labels
+and TOTP countdown selectors. Its popup platform method selects the page-local
+clipboard helper when a document exists; the clipboard-clear callback is chained
+after that helper's promise. The actual helper and platform method extracted
+from this bundle passed isolated VM tests with public password/TOTP canaries:
+capture succeeded with the version checks disabled, with no system clipboard
+reads/writes, legacy copies, offscreen copies or clipboard-clear callbacks.
+The repository regressions cover 2026.9.2 and 2026.9.3 metadata and copy behavior.
+That initial check used public-code inspection and isolated tests only; it did
+not copy real vault credentials or perform a website login.
+
+Later on 2026-10-18, an explicitly requested fresh Cloudflare login passed with
+the installed 2026.9.3 extension and `runExtensionLogin`: `route: extension`,
+`status: success`, two actions. The intended account's existing Cloudflare
+session was signed out through its normal UI before the test. The adapter then
+submitted the selected item's username/password and opened the user menu;
+success required that menu to contain the exact expected account identity.
+Pasteboard change count and foreground application matched immediately before
+and after execution. The temporary extension page closed and the passkey guard
+was removed. No password, code or seed was printed or written to a file.
+This login did not request TOTP, so real-credential TOTP transfer on 2026.9.3
+remains unverified; the public-canary tests above cover its copy path.
 
 On 2026-09-26, real Copy password and Copy verification code controls in the
 unlocked 2026.9.2 extension delivered the intended Google item's values through

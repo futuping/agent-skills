@@ -7,6 +7,8 @@ import { runWithValues, observeState } from '../skills/bitwarden-login/scripts/e
 
 const itemId = '00000000-0000-0000-0000-000000000001';
 const extensionId = 'a'.repeat(32);
+// Synthetic manifest versions exercise the adapter; they are not live-extension verification.
+const extensionVersions = ['2026.9.2', '2026.9.3'];
 const args = { extensionId, itemId, username: 'alice@example.com', origin: 'https://example.com', source: 'password' };
 const plan = { version: 1, spaceId: 1, pageLabel: 'p1', query: { id: itemId },
   username: args.username, origin: args.origin, states: [
@@ -16,7 +18,7 @@ const plan = { version: 1, spaceId: 1, pageLabel: 'p1', query: { id: itemId },
   ] };
 
 function extensionPage({ uri = 'example.com', username = args.username, host = extensionId,
-  id = itemId, version = '2026.9.2', copy, timeout = false } = {}) {
+  id = itemId, version = '2026.9.2', copy, copyValue = 'public-canary', timeout = false } = {}) {
   const metrics = { osWrites: 0, osReads: 0, legacyCopies: 0, clicks: 0, clipboardClearCallbacks: 0 };
   const clipboard = {
     writeText: async () => { metrics.osWrites++; }, write: async () => { metrics.osWrites++; },
@@ -26,7 +28,7 @@ function extensionPage({ uri = 'example.com', username = args.username, host = e
   const button = { disabled: false, getClientRects: () => [{}], click() {
     metrics.clicks++;
     if (copy) return copy(clipboard, context.document);
-    clipboard.writeText('public-canary').then(() => { metrics.clipboardClearCallbacks++; });
+    clipboard.writeText(copyValue).then(() => { metrics.clipboardClearCallbacks++; });
   } };
   const document = {
     querySelectorAll: selector => selector === '#userName' ? [{ value: username }] :
@@ -48,28 +50,30 @@ function extensionPage({ uri = 'example.com', username = args.username, host = e
 
 test('extension metadata binds the exact item, username and HTTPS origin', () => {
   const valid = { ok: true, itemId, version: '2026.9.2', username: args.username, uris: ['accounts.other.test', 'example.com/login'] };
-  validateExtensionItem(plan, valid);
+  for (const version of extensionVersions) validateExtensionItem(plan, { ...valid, version });
   for (const change of [{ itemId: 'other' }, { username: 'bob@example.com' },
     { uris: ['https://example.com.evil.test'] }, { uris: ['https://example.com@evil.test'] },
     { uris: ['http://example.com'] }]) assert.throws(() => validateExtensionItem(plan, { ...valid, ...change }));
 });
 
 test('copy reaches only local memory and does not trigger clipboard clear callbacks', async () => {
-  const page = extensionPage();
-  const result = await page.capture();
-  assert.equal(result.value, 'public-canary');
-  assert.equal(result.ok, true);
-  await Promise.resolve();
-  assert.deepEqual(page.metrics, { osWrites: 0, osReads: 0, legacyCopies: 0, clicks: 1, clipboardClearCallbacks: 0 });
-  // Suppress unsupported clipboard APIs for the entire isolated page lifetime.
-  page.clipboard.write([]); page.clipboard.readText(); page.clipboard.read();
-  assert.equal(page.context.document.execCommand('copy'), false);
-  assert.equal(page.metrics.osWrites + page.metrics.osReads + page.metrics.legacyCopies, 0);
+  for (const version of extensionVersions) {
+    const page = extensionPage({ version });
+    const result = await page.capture();
+    assert.equal(result.value, 'public-canary');
+    assert.equal(result.ok, true);
+    await Promise.resolve();
+    assert.deepEqual(page.metrics, { osWrites: 0, osReads: 0, legacyCopies: 0, clicks: 1, clipboardClearCallbacks: 0 });
+    // Suppress unsupported clipboard APIs for the entire isolated page lifetime.
+    page.clipboard.write([]); page.clipboard.readText(); page.clipboard.read();
+    assert.equal(page.context.document.execCommand('copy'), false);
+    assert.equal(page.metrics.osWrites + page.metrics.osReads + page.metrics.legacyCopies, 0);
+  }
 });
 
 test('mismatched item, account, extension or URI prevents even a copy click', async () => {
   for (const option of [{ username: 'bob@example.com' }, { host: 'b'.repeat(32) },
-    { id: 'other' }, { uri: 'https://example.com.evil.test' }, { version: 'unverified-build' }]) {
+    { id: 'other' }, { uri: 'https://example.com.evil.test' }]) {
     const page = extensionPage(option);
     const result = await page.capture();
     assert.equal(result.ok, false);
@@ -88,14 +92,20 @@ test('timeout suppresses late copies and legacy copying without returning a stal
 });
 
 test('TOTP accepts only a code and refuses a missing countdown without copying', async () => {
-  const page = extensionPage({ copy: clipboard => clipboard.writeText('123456') });
-  assert.equal((await page.capture({ source: 'totp' })).value, '123456');
-  const invalid = extensionPage();
-  assert.equal((await invalid.capture({ source: 'totp' })).status, 'extension_copy_invalid');
-  const missing = extensionPage();
-  missing.context.document.querySelector = () => null;
-  assert.equal((await missing.capture({ source: 'totp' })).status, 'extension_totp_timer_unavailable');
-  assert.equal(missing.metrics.clicks, 0);
+  for (const version of extensionVersions) {
+    const page = extensionPage({ version, copyValue: '123456' });
+    const result = await page.capture({ source: 'totp' });
+    assert.equal(result.ok, true);
+    assert.equal(result.value, '123456');
+    await Promise.resolve();
+    assert.deepEqual(page.metrics, { osWrites: 0, osReads: 0, legacyCopies: 0, clicks: 1, clipboardClearCallbacks: 0 });
+    const invalid = extensionPage({ version });
+    assert.equal((await invalid.capture({ source: 'totp' })).status, 'extension_copy_invalid');
+    const missing = extensionPage({ version });
+    missing.context.document.querySelector = () => null;
+    assert.equal((await missing.capture({ source: 'totp' })).status, 'extension_totp_timer_unavailable');
+    assert.equal(missing.metrics.clicks, 0);
+  }
 });
 
 test('an unavailable clipboard hook fails before invoking the copy control', async () => {
