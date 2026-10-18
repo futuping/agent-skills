@@ -118,5 +118,5 @@ test('preserving a window still installs and cleans up the passkey guard', async
   assert.equal(f.writes().length, 0);
   assert.equal(f.calls.filter(c => c.method === 'Page.addScriptToEvaluateOnNewDocument').length, 1);
   await removePasskeyGuard(f.page, guard);
-  assert.equal(f.calls.filter(c => c.method === 'Page.removeScriptToEvaluateOnNewDocument').length, 1);
+  assert.equal(f.calls.filter(c => c.method === 'Page.removeScriptToEvaluateOnNewDocument').length, 2);
 });

@@ -71,20 +71,25 @@ test('credential channel is private, rejects a wrong nonce, and is single use', 
 test('passkey guard cancels WebAuthn, preserves other credentials, and restores methods', async () => {
   class CredentialsContainer { get() { return Promise.resolve('original-get'); } create() { return Promise.resolve('original-create'); } }
   const original = CredentialsContainer.prototype.get;
-  const context = vm.createContext({ CredentialsContainer, DOMException });
-  vm.runInContext(passkeyGuardSource, context);
   const container = new CredentialsContainer();
+  const context = vm.createContext({ navigator: { credentials: container }, DOMException,
+    setTimeout: () => 1, clearTimeout: () => {} });
+  vm.runInContext(passkeyGuardSource(), context);
   await assert.rejects(container.get({ publicKey: {} }), { name: 'NotAllowedError' });
   await assert.rejects(container.create({ publicKey: {} }), { name: 'NotAllowedError' });
   assert.equal(await container.get({ password: true }), 'original-get');
   vm.runInContext('globalThis[Symbol.for("bitwarden-login.passkey-guard")]()', context);
-  assert.equal(CredentialsContainer.prototype.get, original);
+  assert.equal(container.get, original);
+  assert.equal(Object.hasOwn(container, 'get'), false);
 });
 
 test('guard cleanup restores the document after a CDP session was detached', async () => {
   let restored = false;
   const page = {
-    cdp: async () => { throw new Error('Script not found'); },
+    cdp: async method => {
+      if (method === 'Page.removeScriptToEvaluateOnNewDocument') throw new Error('Script not found');
+      return { identifier: 'cleanup-id' };
+    },
     evaluate: async () => { restored = true; },
   };
   await removePasskeyGuard(page, 'previous-session-id');

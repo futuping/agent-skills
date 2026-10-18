@@ -45,6 +45,9 @@ guess selectors or grant extra extension/clipboard permissions.
 
 Build the shared [login plan](login-plan.md) with an **exact item ID**. Prepare
 background/passkey protection before navigation as described in `SKILL.md`.
+Keep the extension's global passkey preference unchanged. The temporary guard
+also wraps Bitwarden's page-level WebAuthn assignments. For a user-selected
+passkey, restore that guard with `handOffForPasskey` before handing over control.
 Then run this inside one `ego-browser nodejs` invocation, adapting the public
 task/page identifiers and actual checkout path:
 
@@ -103,6 +106,18 @@ if the Agent Access fallback needs attention, leave ego hidden and notify the
 user in chat rather than opening a terminal.
 
 ## Verification scope
+
+On 2026-10-18, with **Ask to save and use passkeys** enabled in the installed
+2026.9.3 extension, live ego checks confirmed temporary cancellation of both
+WebAuthn methods on the managed page, including after navigation. An unrelated
+page's methods stayed unchanged. Cleanup restored the main page and a same-origin
+iframe; after navigation it retained Bitwarden's `getWebAuthnCredential` and
+`createWebAuthnCredential` handlers. A public canary handler assigned during the
+guard was blocked while automation ran and callable again after cleanup. No real
+passkey was created or used, and no biometric/device prompt was approved.
+Regressions cover expiry, captured bound handlers, assignment order, frame
+cleanup and cleanup-before-handoff; manual biometric authentication itself was
+not exercised by the agent.
 
 On 2026-10-18, the installed extension manifest reported 2026.9.3. Its public
 popup bundle (`main.js`, SHA-256

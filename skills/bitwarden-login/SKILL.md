@@ -22,7 +22,9 @@ user-control rules. The execution adapter requires ego-browser API v2, Node.js
    email match alone does not identify the right website credential.
 2. For background operation, call `prepareBackground(task, page)` from
    `scripts/background.mjs` **before navigating to the sign-in flow**. It
-   preserves user windows and installs a tab-local WebAuthn cancellation hook.
+   preserves user windows and temporarily cancels WebAuthn on that agent page.
+   Keep only one website page guarded per task space; remove its guard before
+   preparing a different login page or handing over the space to the user.
    It may minimize only a normal window containing exclusively this task's
    agent-created tabs, and only when ego is not the foreground app. While the
    user is using ego, or window ownership/activity is unclear, leave window
@@ -32,12 +34,28 @@ user-control rules. The execution adapter requires ego-browser API v2, Node.js
    so the executor removes the hook on completion. If login is abandoned before
    running the executor, remove it with `removePasskeyGuard` or close the
    agent-created page.
-3. When the user authorizes suppressing Bitwarden passkey popouts, turn off
-   **Settings → Notifications → Ask to save and use passkeys** in ego’s extension
-   UI once. Verify the checkbox state. This preserves saved passkeys; it does
-   not approve their use or satisfy authentication. Also use the tab-local
-   cancellation hook because disabling the extension prompt alone may leave
-   browser/OS WebAuthn prompts. Keep Search and other browser settings alone.
+3. Leave **Settings → Notifications → Ask to save and use passkeys** and other
+   persistent extension/browser preferences unchanged. Suppression belongs only
+   to the skill's agent page, so the user's other pages retain normal passkeys.
+   The guard handles Bitwarden's method replacements and expires after five
+   minutes if execution is interrupted; each executor renews it for its round.
+   Prefer normal cleanup rather than waiting for expiry.
+
+## Manual passkeys
+
+The user may choose a passkey, including on a passkey-only website. Before
+handing over that page, call `handOffForPasskey(task, page, guardIdentifier)`
+from `scripts/background.mjs`. It restores WebAuthn before `task.handOff()`;
+then end the browser round and tell the user to select their passkey and
+complete any device/biometric confirmation. Do not approve those prompts or
+create an authentication assertion yourself. If cleanup fails, report it
+instead of claiming the page is ready for passkeys.
+
+After the user confirms completion, take over the same task space and check
+the account-specific signed-in signal. If password automation is still needed,
+prepare a new guard before continuing. For any other planned browser handoff,
+also remove the guard while the task is still agent-owned. A page that already
+cancelled an automatic passkey request may need another user click to start it.
 
 ## Primary: unlocked browser extension
 
@@ -99,8 +117,8 @@ and maximized windows are preserved to avoid disturbing macOS Spaces. The
 helper checks ownership/activity again before minimizing an eligible window;
 if discovery fails, it stops without changing window state.
 The adapter cannot silently approve provider access, unlock a vault, complete
-biometrics, or solve a CAPTCHA. Those steps require the user. If a website only
-supports a passkey, stop instead of manufacturing an assertion or bypassing it.
+biometrics, or solve a CAPTCHA. Those steps require the user; follow the manual
+passkey handoff above when appropriate.
 
 The extension memory-transfer adapter is maintained by this repository and is
 not an official Bitwarden headless integration. The fallback uses

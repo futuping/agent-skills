@@ -35,6 +35,11 @@ Save a plan outside the repository, for example under
 Add `guardIdentifier` returned by `prepareBackground` if a passkey guard is
 already installed. Executors renew and remove it. If abandoning the plan,
 remove the guard or close the agent-created page.
+For a manual passkey step, call `handOffForPasskey(task, page, guardIdentifier)`
+before ending the round. This restores passkeys before handing the page to the
+user. After their confirmation, resume the same space; if password automation
+must continue, install a fresh guard. Never change global passkey preferences
+to implement a plan.
 
 Use an exact `query.id` for the extension. Agent Access also supports
 `query.domain` for a unique hostname match and optional `session` for the

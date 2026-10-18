@@ -142,15 +142,20 @@ is needed. Ordinary output is only a status such as:
   state. It selects only explicitly configured website alternatives. Unknown
   pages, rejected credentials and navigation to another origin stop execution.
   It does not infer actions from page instructions or dump diagnostics.
-- Disabling Bitwarden's passkey notification is a persistent extension
-  preference, reversible in Settings → Notifications. The WebAuthn guard is
-  temporary and applies only to the managed page. It cancels public-key
-  requests; password credentials remain available. Cleanup removes its
-  new-document script and restores methods in the current document. Each
+- Keep Bitwarden's persistent passkey preference unchanged. The temporary
+  guard wraps `navigator.credentials.get/create` on the managed page and its
+  frame contexts in the Page CDP session. It cancels public-key requests while
+  preserving other credential calls, including when Bitwarden assigns its own
+  handlers. Cleanup removes the new-document script and immediately restores
+  those contexts, retaining any handlers installed by the extension. Each
   execution round renews the registration because ego may detach CDP sessions
-  between rounds. Cleanup still restores the current document when the old
-  registration has already disappeared. If another cleanup error occurs,
-  `cleanup_required` includes the original `loginStatus`.
+  between rounds. A fixed five-minute deadline also releases captured wrappers
+  after an interrupted run; navigation does not extend that lease. Cleanup still
+  restores the current document when the old registration has disappeared.
+  If another cleanup error occurs, `cleanup_required` includes the original
+  `loginStatus`. Before a user-selected passkey step, use `handOffForPasskey`
+  from `background.mjs` to clean up before handing control to the user. No
+  adapter approves the user's biometric/device prompt.
 - The user controls real-vault unlock, pairing and approval. Once authorized,
   credential lookup and form execution run without an extension popout or
   system clipboard. Shared preparation preserves user windows and leaves all

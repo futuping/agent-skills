@@ -1,31 +1,73 @@
 import { execFileSync } from 'node:child_process';
 import { fail } from './core.mjs';
 
-export const passkeyGuardSource = `(() => {
+function installPasskeyGuard(expiresAt) {
   const key = Symbol.for('bitwarden-login.passkey-guard');
-  if (globalThis[key] || !globalThis.CredentialsContainer) return;
-  const proto = CredentialsContainer.prototype;
+  globalThis[key]?.();
+  if (!globalThis.navigator?.credentials || Date.now() >= expiresAt) return;
+  const credentials = navigator.credentials;
   const saved = [];
-  for (const method of ['get', 'create']) {
-    const descriptor = Object.getOwnPropertyDescriptor(proto, method);
-    if (!descriptor || typeof descriptor.value !== 'function') continue;
-    const original = descriptor.value;
-    const replacement = function(options) {
-      if (options && options.publicKey) {
-        return Promise.reject(new DOMException('Passkey interaction cancelled for this automation tab', 'NotAllowedError'));
+  let active = true, timer;
+  const restore = () => {
+    // Bound copies retained by the extension must also stop cancelling requests.
+    active = false;
+    clearTimeout(timer);
+    for (const undo of saved) undo();
+    if (globalThis[key] === restore) delete globalThis[key];
+  };
+  try {
+    for (const method of ['get', 'create']) {
+      const descriptor = Object.getOwnPropertyDescriptor(credentials, method);
+      const original = credentials[method];
+      if (typeof original !== 'function' || (descriptor &&
+          (!descriptor.configurable || !descriptor.writable || !('value' in descriptor)))) {
+        throw new Error('passkey_guard_unavailable');
       }
-      return original.apply(this, arguments);
-    };
-    Object.defineProperty(proto, method, { ...descriptor, value: replacement });
-    saved.push([method, descriptor, replacement]);
-  }
-  Object.defineProperty(globalThis, key, { configurable: true, value: () => {
-    for (const [method, descriptor, replacement] of saved) {
-      if (proto[method] === replacement) Object.defineProperty(proto, method, descriptor);
+      const wrap = delegate => function(options) {
+        if (active && Date.now() >= expiresAt) restore();
+        if (active && options?.publicKey) {
+          return Promise.reject(new DOMException('Passkey interaction cancelled for this automation tab', 'NotAllowedError'));
+        }
+        return Reflect.apply(delegate, this, arguments);
+      };
+      let delegate = original, guarded = wrap(original), assigned = false;
+      const get = () => guarded;
+      const set = value => {
+        assigned = true;
+        delegate = value;
+        // Freeze this delegate: Bitwarden binds the previous method before
+        // assigning its own handler, whose browser fallback calls that copy.
+        guarded = typeof value === 'function' ? wrap(value) : value;
+      };
+      Object.defineProperty(credentials, method, {
+        configurable: true, enumerable: descriptor?.enumerable ?? false, get, set,
+      });
+      saved.push(() => {
+        const current = Object.getOwnPropertyDescriptor(credentials, method);
+        if (current?.get !== get || current?.set !== set) return;
+        if (assigned) Object.defineProperty(credentials, method, {
+          configurable: true, enumerable: descriptor?.enumerable ?? true,
+          writable: true, value: delegate,
+        });
+        else if (descriptor) Object.defineProperty(credentials, method, descriptor);
+        else delete credentials[method];
+      });
     }
-    delete globalThis[key];
-  }});
-})()`;
+    Object.defineProperty(globalThis, key, { configurable: true, value: restore });
+    timer = setTimeout(restore, Math.max(0, expiresAt - Date.now()));
+  } catch (error) {
+    restore();
+    throw error;
+  }
+}
+
+// One absolute lease covers every navigation in this execution round. A killed
+// runner must not leave an indefinite restriction on a page later used manually.
+export function passkeyGuardSource(expiresAt = Date.now() + 300_000) {
+  return `(${installPasskeyGuard})(${JSON.stringify(expiresAt)})`;
+}
+
+const restorePasskeySource = `globalThis[Symbol.for('bitwarden-login.passkey-guard')]?.()`;
 
 async function removeRegistration(page, identifier) {
   if (!identifier) return;
@@ -99,10 +141,14 @@ export async function prepareBackground(task, page, existingIdentifier) {
   await removeRegistration(page, existingIdentifier);
   // Register in this execution round; an identifier from preparation may refer
   // to a detached session and cannot protect the next navigation.
-  const { identifier } = await page.cdp('Page.addScriptToEvaluateOnNewDocument', { source: passkeyGuardSource });
-  try { await page.evaluate(passkeyGuardSource); }
+  const source = passkeyGuardSource();
+  const { identifier } = await page.cdp('Page.addScriptToEvaluateOnNewDocument', { source, runImmediately: true });
+  try { await page.evaluate(source); }
   catch (error) {
-    await page.cdp('Page.removeScriptToEvaluateOnNewDocument', { identifier });
+    // runImmediately may already have wrapped the current page and frames even
+    // when the following evaluation loses its context during navigation.
+    try { await removePasskeyGuard(page, identifier); }
+    catch { fail('cleanup_required'); }
     throw error;
   }
   return identifier;
@@ -110,5 +156,15 @@ export async function prepareBackground(task, page, existingIdentifier) {
 
 export async function removePasskeyGuard(page, identifier) {
   await removeRegistration(page, identifier);
-  await page.evaluate(() => globalThis[Symbol.for('bitwarden-login.passkey-guard')]?.());
+  // runImmediately also restores existing frame contexts in this Page session.
+  const cleanup = await page.cdp('Page.addScriptToEvaluateOnNewDocument', {
+    source: restorePasskeySource, runImmediately: true,
+  });
+  try { await page.evaluate(restorePasskeySource); }
+  finally { await removeRegistration(page, cleanup.identifier); }
+}
+
+export async function handOffForPasskey(task, page, identifier) {
+  await removePasskeyGuard(page, identifier);
+  await task.handOff();
 }
