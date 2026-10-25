@@ -1,0 +1,2218 @@
+{
+  "asOf": "2026-10-25",
+  "baselineSourceCount": 152,
+  "method": "只读审计现有all-sources.json的152条记录、solo-combo-notes.json、build_solo_playbook.py和HTML中solo-playbook；没有重新浏览、安装、运行项目或改动技能/HTML。此快照不包含并行研究稍后新增的来源。",
+  "answer": "solo-delivery是筛选后的个人交付核心，不是152条来源或所有技能的全集。主要方法已经覆盖；确有一些报告层面的好建议尚未进入SKILL正文，以及正式安装验证尚未做。应补少量决策和按需参考，保持核心精简。",
+  "coreCoverage": [
+    {
+      "theme": "需求、非目标、约束与验收先行",
+      "status": "已纳入核心",
+      "where": "SKILL 2；solo-process 2；工作记录模板",
+      "evidenceIds": [
+        "thariq-spec",
+        "harper-workflow",
+        "addy-spec",
+        "investor-ben-yoskovitz-rubric",
+        "method-sdd-taxonomy"
+      ],
+      "assessment": "已吸收规格与rubric思想；没有照搬各作者所有文件名和确认仪式。"
+    },
+    {
+      "theme": "复杂旧库按代码事实研究和短计划",
+      "status": "已纳入核心",
+      "where": "SKILL 1、3；solo-process 1、3",
+      "evidenceIds": [
+        "meta-dex-rpi",
+        "claude-practices",
+        "codex-internal",
+        "simon-workflow"
+      ],
+      "assessment": "事实/假设与相关文件已覆盖；关键未知的小实验还可明确进入正式skill。"
+    },
+    {
+      "theme": "一次一个可验证单元、限制修改范围",
+      "status": "已纳入核心",
+      "where": "SKILL 4；solo-process 4；slice prompt",
+      "evidenceIds": [
+        "kent-augmented",
+        "karpathy-notes",
+        "peter-talk",
+        "method-red-green",
+        "cursor-practices"
+      ],
+      "assessment": "保留有意义TDD和小改轻量分支；未把所有任务强制变为同一Red/Green粒度。"
+    },
+    {
+      "theme": "实际执行、测试基线、真实用户路径与证据",
+      "status": "已纳入核心",
+      "where": "SKILL 1、5；solo-process 1、5；CSV示例",
+      "evidenceIds": [
+        "boris-verify",
+        "simon-patterns",
+        "cooking-codex",
+        "claude-long",
+        "boris-team"
+      ],
+      "assessment": "覆盖自动检查与浏览器/接口/设备真实验证；独立于实现的预期样例可在正式skill里补强。"
+    },
+    {
+      "theme": "新上下文审查、发现复核和定点修复",
+      "status": "已纳入核心",
+      "where": "SKILL 6；review prompt；两端落地步骤",
+      "evidenceIds": [
+        "claude-review",
+        "investor-tunguz-nine-observations",
+        "investor-ben-yoskovitz-rubric",
+        "addy-workflow",
+        "meta-anthropic-harness-2026"
+      ],
+      "assessment": "单写者与只读审查已经清楚，未把第二模型等同正确性保证。"
+    },
+    {
+      "theme": "持久状态、决策与跨会话交接",
+      "status": "已纳入核心",
+      "where": "SKILL 3、7；工作记录与handoff prompt",
+      "evidenceIds": [
+        "gabriel-goals",
+        "exec-plans",
+        "codex-long",
+        "thariq-thin",
+        "yegge-beads"
+      ],
+      "assessment": "已覆盖done/next/blockers/evidence及Git位置；推荐复用项目既有工件，而非固定另建一套docs/work。"
+    },
+    {
+      "theme": "可执行环境、反馈工具、Nix与原有约束",
+      "status": "已纳入核心",
+      "where": "SKILL 1；AGENTS模板；Nix专段",
+      "evidenceIds": [
+        "openai-harness",
+        "armin-agentic",
+        "peter-speed",
+        "latent-claude",
+        "mitchell-adoption"
+      ],
+      "assessment": "继承全局Nix规则正确；正式skill不应复制整套全局指令。工具/环境故障先诊断可以比“再试提示词”更明确。"
+    },
+    {
+      "theme": "有界推进和无进展诊断",
+      "status": "已纳入核心",
+      "where": "SKILL 5；solo-growth；slice prompt",
+      "evidenceIds": [
+        "a16z-yoko-loop",
+        "ralph-original",
+        "every-claude",
+        "a16z-olivia-debug"
+      ],
+      "assessment": "连续两次无新证据是本报告建议触发诊断，不是文献统一阈值，也不表示立刻结束。"
+    },
+    {
+      "theme": "可审查交付、准确发布状态与授权边界",
+      "status": "已纳入核心",
+      "where": "SKILL 7；solo-process 7；平台安装与review说明",
+      "evidenceIds": [
+        "claude-review",
+        "boris-team",
+        "openai-harness",
+        "skill-sentry-team"
+      ],
+      "assessment": "报告有smoke check和回滚，正式skill中可以按实际改动触发发布/数据/兼容性验证。"
+    }
+  ],
+  "conditionalCoverage": [
+    {
+      "theme": "领域skills及实际外部连接",
+      "status": "按需使用，报告有而核心路由不足",
+      "evidenceIds": [
+        "skill-vercel-agent-skills",
+        "skill-impeccable",
+        "skill-supabase-official",
+        "skill-sentry-team",
+        "openai-plugins",
+        "skill-anthropic-marketplace"
+      ],
+      "when": "任务确实涉及React/Next、界面、数据库、CI/PR或外部服务，且对应能力已经可用或获授权安装。",
+      "assessment": "正式skill应提示选择真正相关的现有能力，不把所有领域指南永久加载。"
+    },
+    {
+      "theme": "EDD、prompt优化与元提示词",
+      "status": "按需，不是每个软件任务的默认步骤",
+      "evidenceIds": [
+        "method-eval-first-firebase",
+        "meta-anthropic-success-evals",
+        "meta-openai-gpt51",
+        "meta-openai-improvement-loop",
+        "meta-openai-prompt-optimizer",
+        "meta-gepa"
+      ],
+      "when": "开发或维护AI行为、prompt、自有skill/harness时。",
+      "assessment": "保留真实失败轨迹、基线、正负触发和端到端回归；普通业务功能不必启动prompt搜索/评测基础设施。"
+    },
+    {
+      "theme": "长任务编排、任务依赖图和多worktree",
+      "status": "按需",
+      "evidenceIds": [
+        "symphony",
+        "beads-repo",
+        "cursor-scaling",
+        "subagent-fold",
+        "boris-long"
+      ],
+      "when": "任务可以明确拆成独立单元，或跨仓库长时实施确实需要调度与状态。",
+      "assessment": "一人小任务不需要常开planner/worker/judge团队；并行前需隔离写入边界与整合责任。"
+    },
+    {
+      "theme": "性能、可观测性与确定性工具",
+      "status": "按需",
+      "evidenceIds": [
+        "armin-agentic",
+        "openai-harness",
+        "a16z-yoko-tetris",
+        "investor-tunguz-blueprints",
+        "taylor-gemini"
+      ],
+      "when": "性能、工具可靠性、重复高频动作或非确定性决策成为实际瓶颈。",
+      "assessment": "必要时优先改善可运行CLI、日志和测量，确定性代码执行可重复步骤；不是无条件增设监控系统。"
+    },
+    {
+      "theme": "原型、参考实现与代表性纵向切片",
+      "status": "部分纳入，正式skill可加强",
+      "evidenceIds": [
+        "exec-plans",
+        "sora-android",
+        "simon-workflow",
+        "carlini-compiler"
+      ],
+      "when": "关键技术未知、跨平台对齐或复杂算法难以凭静态阅读证明。",
+      "assessment": "先做最小实验或参照既有正确实现，再扩展计划，不先生成整个应用。"
+    }
+  ],
+  "intentionalExclusions": [
+    {
+      "theme": "叠加多套总流程框架",
+      "status": "刻意不默认",
+      "evidenceIds": [
+        "superpowers",
+        "skills-ecc",
+        "investor-garrytan-gstack",
+        "skill-gsd-core",
+        "bmad",
+        "meta-superclaude"
+      ],
+      "why": "它们可能是有用替代，但重复控制讨论、计划、实施与审查会带来冲突和维护负担。取舍不等于否定项目。"
+    },
+    {
+      "theme": "完整AI-DLC/SPDD治理与大型规格体系",
+      "status": "刻意不默认",
+      "evidenceIds": [
+        "method-aidlc-original",
+        "method-aidlc-current",
+        "method-spdd",
+        "spec-kit",
+        "method-openspec",
+        "method-kiro-specs"
+      ],
+      "why": "个人项目吸收其规格、约束和验证思想；仅当角色协同、规模或长期治理需求足够时采用完整方法。"
+    },
+    {
+      "theme": "Dark Factory、不看代码与高预算自动化",
+      "status": "刻意不默认",
+      "evidenceIds": [
+        "method-strongdm-factory",
+        "method-dan-five-levels",
+        "carlini-compiler"
+      ],
+      "why": "独立场景/验证基础设施有启发，但团队个案、实验预算与不人工审代码不是个人开发的普遍前提。"
+    },
+    {
+      "theme": "API harness起始系统提示词与学术专家编排",
+      "status": "背景或专项参考",
+      "evidenceIds": [
+        "meta-codex-starter",
+        "meta-suzgun-kalai",
+        "meta-openai-optimize-prompts",
+        "meta-openai-self-evolving"
+      ],
+      "why": "适合自建agent/harness或研究；不应把产品已内置的执行循环再以大段系统prompt重复注入。"
+    },
+    {
+      "theme": "已弃用、迁移指针与社区转述",
+      "status": "归属和迁移证据，不当默认依赖",
+      "evidenceIds": [
+        "openai-skills-old",
+        "gsd-old",
+        "skill-next-migration",
+        "karpathy-community"
+      ],
+      "why": "保留历史与正确作者归属；不把社区Karpathy-inspired内容当本人发布，不把旧安装指南当当前方案。"
+    },
+    {
+      "theme": "无关领域及发现目录全部安装",
+      "status": "刻意不默认",
+      "evidenceIds": [
+        "skill-huggingface-official",
+        "skill-microsoft-official",
+        "skill-remotion",
+        "skill-scientific",
+        "skill-obsidian",
+        "skills-awesome-claude-code",
+        "skills-voltagent-catalog",
+        "skills-composio-catalog"
+      ],
+      "why": "按技术栈或任务取用；目录、高星与更多命令并不证明该任务需要它。"
+    }
+  ],
+  "gapsAndMinimalChanges": [
+    {
+      "id": "reuse-existing-artifacts",
+      "priority": "medium",
+      "scope": "正式skill可执行性",
+      "finding": "SKILL 3把docs/work/<slug>.md写得较固定；报告虽说普通惯例，但已有项目任务记录/issue可能被迫双维护。",
+      "minimalChange": "先沿用项目已有规格/issue/工作记录；没有合适位置时才默认docs/work/<slug>.md。保持一个事实源。",
+      "evidenceIds": [
+        "thariq-thin",
+        "codex-iterate",
+        "method-openspec"
+      ],
+      "placement": "核心一短句；模板放assets或references，按需读取。"
+    },
+    {
+      "id": "route-specialist-capabilities",
+      "priority": "medium",
+      "scope": "报告到skill的遗漏",
+      "finding": "报告明确推荐按需领域技能和插件，当前SKILL正文未说明选择/发现/调用这些能力，可能只读自身完成全流程。",
+      "minimalChange": "按实际任务选用可用且相关的领域技能/工具；遵守被显式点名的技能。不要为每个任务加载全部目录，也不叠加多个全流程控制层。",
+      "evidenceIds": [
+        "thariq-skills",
+        "subagent-fold",
+        "skill-vercel-agent-skills",
+        "skill-impeccable",
+        "skill-supabase-official"
+      ],
+      "placement": "核心路由一句；域专有细节留给被调用技能。"
+    },
+    {
+      "id": "prove-critical-unknowns",
+      "priority": "medium",
+      "scope": "核心决策补强",
+      "finding": "调查和短计划已存在，但关键未知的小实验/代表性切片只在部分研究与综合笔记中出现，核心未明确。",
+      "minimalChange": "若关键方案依赖尚未验证的假设，先做最小可运行实验或代表性纵向切片，记录结论后再扩大实施。",
+      "evidenceIds": [
+        "exec-plans",
+        "sora-android",
+        "simon-workflow"
+      ],
+      "placement": "研究/计划段一句；仅在存在真实未知时触发。"
+    },
+    {
+      "id": "acceptance-independent-of-implementation",
+      "priority": "medium",
+      "scope": "报告到skill的遗漏",
+      "finding": "slice prompt明说不要删测试/放宽验收，但SKILL 5未保留；只要求运行检查，仍可能由实现者改标准后自证。",
+      "minimalChange": "在实现前明确期望结果；验收来源与实现分开核对，必要时用独立样例、参考实现或独立验证者。不得为通过而删检查/放宽标准；若需求确需变化，记录原因并与目标核对。",
+      "evidenceIds": [
+        "investor-ben-yoskovitz-rubric",
+        "meta-anthropic-harness-2026",
+        "method-strongdm-factory",
+        "kent-augmented",
+        "simon-patterns"
+      ],
+      "placement": "验证段一至两句；不要求所有个人项目建立外部holdout系统。"
+    },
+    {
+      "id": "risk-specific-review-and-release",
+      "priority": "medium",
+      "scope": "报告到skill的遗漏",
+      "finding": "报告有权限/数据例子、发布后smoke和必要回滚，SKILL仅泛称“整理交付说明”，没提示按受影响边界选专项验证。",
+      "minimalChange": "实际涉及权限、外部输入、重要数据、迁移、兼容性或部署时，对相应边界做针对检查；发布后验证目标环境并记录必要回滚/恢复路径。",
+      "evidenceIds": [
+        "claude-review",
+        "anthropic-teams",
+        "boris-team",
+        "skill-sentry-team"
+      ],
+      "placement": "条件参考或交付段一句；不为没有这些改动的小任务插入安全审批清单。"
+    },
+    {
+      "id": "maintain-and-retire-rules",
+      "priority": "low",
+      "scope": "报告到skill的遗漏",
+      "finding": "报告第8步和improve prompt有经验提炼；SKILL第7步只留状态，不包含渐进经验更新和淘汰过时脚手架。",
+      "minimalChange": "只把反复有效、影响决策的经验写回项目规则或skill；模型/工具变化后用代表任务重新检验，删除没有收益的指令和编排。",
+      "evidenceIds": [
+        "thariq-skills",
+        "every-claude",
+        "codex-iterate",
+        "meta-astra-instruction-audit",
+        "meta-anthropic-harness-2026"
+      ],
+      "placement": "收尾可选一句，或专门维护参考；不要每次任务自动改全局规则。"
+    },
+    {
+      "id": "test-the-actual-packaged-skill",
+      "priority": "medium",
+      "scope": "新产品化工作，不是旧研究缺陷",
+      "finding": "此前交付是HTML中的示例，没有作为实际安装包验证发现、引用资源、跨宿主和真实行为。",
+      "minimalChange": "正式skill验证frontmatter/资源链接/入口；独立代理用新功能、缺陷、UI小改/纯问答等代表请求检查推进和不触发边界；确认Codex/Claude加载同一受管来源。",
+      "evidenceIds": [
+        "thariq-skills",
+        "method-eval-first-firebase",
+        "solo-codex-skills-current",
+        "solo-claude-skills"
+      ],
+      "placement": "仓库验证/维护材料，不把验证整个技能作为每次用户功能任务的步骤。"
+    }
+  ],
+  "sourceCoverageIndex": [
+    {
+      "sourceId": "boris-workflow",
+      "title": "Boris 的个人 Claude Code 工作流",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "boris-verify",
+      "title": "给 Claude 可执行的验证反馈（工作流第 13 条）",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "实际执行、测试基线、真实用户路径与证据"
+        }
+      ]
+    },
+    {
+      "sourceId": "boris-long",
+      "title": "长时间自主运行的五条建议",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "长任务编排、任务依赖图和多worktree"
+        }
+      ]
+    },
+    {
+      "sourceId": "boris-team",
+      "title": "成熟团队如何让代理端到端验证工作",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "实际执行、测试基线、真实用户路径与证据"
+        },
+        {
+          "relationship": "core",
+          "theme": "可审查交付、准确发布状态与授权边界"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "risk-specific-review-and-release"
+        }
+      ]
+    },
+    {
+      "sourceId": "thariq-spec",
+      "title": "先深入采访，再写入 SPEC.md",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "需求、非目标、约束与验收先行"
+        }
+      ]
+    },
+    {
+      "sourceId": "thariq-skills",
+      "title": "Lessons from Building Claude Code: How We Use Skills",
+      "relationship": [
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "route-specialist-capabilities"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "maintain-and-retire-rules"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "test-the-actual-packaged-skill"
+        }
+      ]
+    },
+    {
+      "sourceId": "thariq-thin",
+      "title": "Thin prompts, thick artifacts + context, thin skills",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "持久状态、决策与跨会话交接"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "reuse-existing-artifacts"
+        }
+      ]
+    },
+    {
+      "sourceId": "lydia-context",
+      "title": "Maximizing the value of your Claude Code sessions",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "gabriel-goals",
+      "title": "Collaborating with Codex on Long-Running Tasks",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "持久状态、决策与跨会话交接"
+        }
+      ]
+    },
+    {
+      "sourceId": "alex-codex",
+      "title": "The power user’s guide to Codex",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "openai-harness",
+      "title": "Harness engineering: leveraging Codex in an agent-first world",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "可执行环境、反馈工具、Nix与原有约束"
+        },
+        {
+          "relationship": "core",
+          "theme": "可审查交付、准确发布状态与授权边界"
+        },
+        {
+          "relationship": "conditional",
+          "theme": "性能、可观测性与确定性工具"
+        }
+      ]
+    },
+    {
+      "sourceId": "sora-android",
+      "title": "How we used Codex to build Sora for Android in 28 days",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "原型、参考实现与代表性纵向切片"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "prove-critical-unknowns"
+        }
+      ]
+    },
+    {
+      "sourceId": "exec-plans",
+      "title": "Using PLANS.md for multi-hour problem solving",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "持久状态、决策与跨会话交接"
+        },
+        {
+          "relationship": "conditional",
+          "theme": "原型、参考实现与代表性纵向切片"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "prove-critical-unknowns"
+        }
+      ]
+    },
+    {
+      "sourceId": "codex-long",
+      "title": "Run long horizon tasks with Codex",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "持久状态、决策与跨会话交接"
+        }
+      ]
+    },
+    {
+      "sourceId": "codex-iterate",
+      "title": "Iterating Development Workflows with Codex",
+      "relationship": [
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "reuse-existing-artifacts"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "maintain-and-retire-rules"
+        }
+      ]
+    },
+    {
+      "sourceId": "codex-internal",
+      "title": "How OpenAI uses Codex",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "复杂旧库按代码事实研究和短计划"
+        }
+      ]
+    },
+    {
+      "sourceId": "symphony",
+      "title": "An open-source spec for Codex orchestration: Symphony",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "长任务编排、任务依赖图和多worktree"
+        }
+      ]
+    },
+    {
+      "sourceId": "cooking-codex",
+      "title": "Cooking with Codex",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "实际执行、测试基线、真实用户路径与证据"
+        }
+      ]
+    },
+    {
+      "sourceId": "taylor-gemini",
+      "title": "5 things to try with Gemini 3 Pro in Gemini CLI",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "性能、可观测性与确定性工具"
+        }
+      ]
+    },
+    {
+      "sourceId": "google-studio",
+      "title": "Vibe Coding with Google AI Studio",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "cursor-practices",
+      "title": "Best practices for coding with agents",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "一次一个可验证单元、限制修改范围"
+        }
+      ]
+    },
+    {
+      "sourceId": "cursor-scaling",
+      "title": "Scaling long-running autonomous coding",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "长任务编排、任务依赖图和多worktree"
+        }
+      ]
+    },
+    {
+      "sourceId": "anthropic-teams",
+      "title": "How Anthropic teams use Claude Code",
+      "relationship": [
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "risk-specific-review-and-release"
+        }
+      ]
+    },
+    {
+      "sourceId": "claude-practices",
+      "title": "Best practices for Claude Code",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "复杂旧库按代码事实研究和短计划"
+        }
+      ]
+    },
+    {
+      "sourceId": "claude-long",
+      "title": "Effective harnesses for long-running agents",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "实际执行、测试基线、真实用户路径与证据"
+        }
+      ]
+    },
+    {
+      "sourceId": "carlini-compiler",
+      "title": "Building a C compiler with a team of parallel Claudes",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "原型、参考实现与代表性纵向切片"
+        },
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "Dark Factory、不看代码与高预算自动化"
+        }
+      ]
+    },
+    {
+      "sourceId": "claude-review",
+      "title": "How the Claude Code team does code review",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "新上下文审查、发现复核和定点修复"
+        },
+        {
+          "relationship": "core",
+          "theme": "可审查交付、准确发布状态与授权边界"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "risk-specific-review-and-release"
+        }
+      ]
+    },
+    {
+      "sourceId": "subagent-fold",
+      "title": "When to fold subagents into your main agent loop",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "长任务编排、任务依赖图和多worktree"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "route-specialist-capabilities"
+        }
+      ]
+    },
+    {
+      "sourceId": "every-claude",
+      "title": "How to Use Claude Code Like the People Who Built It",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "有界推进和无进展诊断"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "maintain-and-retire-rules"
+        }
+      ]
+    },
+    {
+      "sourceId": "latent-claude",
+      "title": "Claude Code: Anthropic’s Agent in Your Terminal",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "可执行环境、反馈工具、Nix与原有约束"
+        }
+      ]
+    },
+    {
+      "sourceId": "harper-workflow",
+      "title": "My LLM codegen workflow atm",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "需求、非目标、约束与验收先行"
+        }
+      ]
+    },
+    {
+      "sourceId": "kent-augmented",
+      "title": "Augmented Coding: Beyond the Vibes",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "一次一个可验证单元、限制修改范围"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "acceptance-independent-of-implementation"
+        }
+      ]
+    },
+    {
+      "sourceId": "simon-workflow",
+      "title": "Here’s how I use LLMs to help me write code",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "复杂旧库按代码事实研究和短计划"
+        },
+        {
+          "relationship": "conditional",
+          "theme": "原型、参考实现与代表性纵向切片"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "prove-critical-unknowns"
+        }
+      ]
+    },
+    {
+      "sourceId": "simon-patterns",
+      "title": "Agentic Engineering Patterns",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "实际执行、测试基线、真实用户路径与证据"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "acceptance-independent-of-implementation"
+        }
+      ]
+    },
+    {
+      "sourceId": "addy-workflow",
+      "title": "My LLM coding workflow going into 2026",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "新上下文审查、发现复核和定点修复"
+        }
+      ]
+    },
+    {
+      "sourceId": "addy-spec",
+      "title": "How to write a good spec for AI agents",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "需求、非目标、约束与验收先行"
+        }
+      ]
+    },
+    {
+      "sourceId": "karpathy-origin",
+      "title": "Vibe coding 原始定义",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "karpathy-notes",
+      "title": "A few random notes from claude coding",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "一次一个可验证单元、限制修改范围"
+        }
+      ]
+    },
+    {
+      "sourceId": "karpathy-retro",
+      "title": "Vibe coding 一周年：agentic engineering",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "armin-agentic",
+      "title": "Agentic Coding Recommendations",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "可执行环境、反馈工具、Nix与原有约束"
+        },
+        {
+          "relationship": "conditional",
+          "theme": "性能、可观测性与确定性工具"
+        }
+      ]
+    },
+    {
+      "sourceId": "peter-talk",
+      "title": "Just Talk To It — the no-bs Way of Agentic Engineering",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "一次一个可验证单元、限制修改范围"
+        }
+      ]
+    },
+    {
+      "sourceId": "peter-speed",
+      "title": "Shipping at Inference-Speed",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "可执行环境、反馈工具、Nix与原有约束"
+        }
+      ]
+    },
+    {
+      "sourceId": "mitchell-adoption",
+      "title": "My AI Adoption Journey",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "可执行环境、反馈工具、Nix与原有约束"
+        }
+      ]
+    },
+    {
+      "sourceId": "ralph-original",
+      "title": "Ralph Wiggum as a software engineer",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "有界推进和无进展诊断"
+        }
+      ]
+    },
+    {
+      "sourceId": "yegge-beads",
+      "title": "Introducing Beads: A coding agent memory system",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "持久状态、决策与跨会话交接"
+        }
+      ]
+    },
+    {
+      "sourceId": "antirez",
+      "title": "Don’t fall into the anti-AI hype",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "mario-pi",
+      "title": "What I learned building an opinionated and minimal coding agent",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "levels-vps",
+      "title": "Coding on a VPS with Claude Code for almost a year",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "solveit",
+      "title": "Launching How to Solve It with Code",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "yc-karpathy",
+      "title": "Software Is Changing (Again)",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "superpowers",
+      "title": "Superpowers",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "叠加多套总流程框架"
+        }
+      ]
+    },
+    {
+      "sourceId": "anthropic-skills",
+      "title": "Anthropic Skills",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "spec-kit",
+      "title": "Spec Kit：规格到实施与收敛验证",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "完整AI-DLC/SPDD治理与大型规格体系"
+        }
+      ]
+    },
+    {
+      "sourceId": "bmad",
+      "title": "BMad Method：Agile AI Driven Development",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "叠加多套总流程框架"
+        }
+      ]
+    },
+    {
+      "sourceId": "beads-repo",
+      "title": "Beads",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "长任务编排、任务依赖图和多worktree"
+        }
+      ]
+    },
+    {
+      "sourceId": "context-intro",
+      "title": "Context Engineering Intro",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "openai-plugins",
+      "title": "OpenAI Plugins",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "领域skills及实际外部连接"
+        }
+      ]
+    },
+    {
+      "sourceId": "openai-skills-old",
+      "title": "OpenAI Skills（已弃用）",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "已弃用、迁移指针与社区转述"
+        }
+      ]
+    },
+    {
+      "sourceId": "peter-agent-scripts",
+      "title": "Peter 的 agent-scripts",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "ralph-playbook",
+      "title": "How to Ralph Wiggum",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "karpathy-community",
+      "title": "Karpathy-Inspired Claude Code Guidelines",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "已弃用、迁移指针与社区转述"
+        }
+      ]
+    },
+    {
+      "sourceId": "gsd-old",
+      "title": "GSD 旧仓库迁移声明",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "已弃用、迁移指针与社区转述"
+        }
+      ]
+    },
+    {
+      "sourceId": "andrew-course",
+      "title": "Build with Andrew",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "a16z-yoko-loop",
+      "title": "Knowing When to Stop: The Art of Making a Loop Converge",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "有界推进和无进展诊断"
+        }
+      ]
+    },
+    {
+      "sourceId": "a16z-yoko-tetris",
+      "title": "I Built TetrisBench, Where LLMs Compete at Playing Tetris. Here’s What I Found.",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "性能、可观测性与确定性工具"
+        }
+      ]
+    },
+    {
+      "sourceId": "a16z-justine-simcity",
+      "title": "Made my own Sim City using Opus 4.5 in Cursor",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "a16z-justine-3d-world",
+      "title": "Generate an interactive 3D world: Cursor + reference image",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "a16z-olivia-debug",
+      "title": "A single instruction can be the difference between spinning endlessly and a clean fix",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "有界推进和无进展诊断"
+        }
+      ]
+    },
+    {
+      "sourceId": "a16z-olivia-sites",
+      "title": "A GeoGuessr-style game against LLMs, built with ChatGPT Sites",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "a16z-anish-figma",
+      "title": "Ask Claude Code to visually explain a codebase using Figma",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "a16z-justine-gap",
+      "title": "Most People Can’t Vibe Code. Here’s How We Fix That.",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "a16z-yoko-patterns",
+      "title": "Emerging Developer Patterns for the AI Era",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "a16z-internal-tools",
+      "title": "One Prompt, Zero Engineers: Your New Internal Dev",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "investor-garrytan-gstack",
+      "title": "gstack — Garry Tan’s exact Claude Code setup",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "叠加多套总流程框架"
+        }
+      ]
+    },
+    {
+      "sourceId": "investor-tom-blomfield-production-app",
+      "title": "Vibecoding A Production App",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "investor-tunguz-nine-observations",
+      "title": "9 Observations from Building with AI Agents",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "新上下文审查、发现复核和定点修复"
+        }
+      ]
+    },
+    {
+      "sourceId": "investor-tunguz-blueprints",
+      "title": "Is AI Doing Less & Less?",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "性能、可观测性与确定性工具"
+        }
+      ]
+    },
+    {
+      "sourceId": "investor-ben-yoskovitz-rubric",
+      "title": "How I Ship Real Software with Claude Code (Without Being a Developer)",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "需求、非目标、约束与验收先行"
+        },
+        {
+          "relationship": "core",
+          "theme": "新上下文审查、发现复核和定点修复"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "acceptance-independent-of-implementation"
+        }
+      ]
+    },
+    {
+      "sourceId": "investor-scale-sloppy-joe",
+      "title": "We built a background coding agent named Sloppy Joe",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "investor-scale-mcp-research",
+      "title": "How we built a Model Context Protocol server for investment research",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "investor-ryan-sarver-restaurant",
+      "title": "I Vibe-Coded a Personal Restaurant Reservation Agent. It Lives in My WhatsApp.",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "investor-sequoia-context-methodology",
+      "title": "Vibe Coding Needs Context Engineering",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-claude-metaprompt",
+      "title": "Metaprompt：Anthropic 公开的提示词生成器模板",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-openai-gpt5",
+      "title": "GPT-5 prompting guide：Metaprompting",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-openai-gpt51",
+      "title": "GPT-5.1 Prompting Guide：先诊断失败，再修补系统提示词",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "EDD、prompt优化与元提示词"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-openai-optimize-prompts",
+      "title": "Optimize Prompts：用多个检查器改进提示词",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "API harness起始系统提示词与学术专家编排"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-openai-prompt-optimizer",
+      "title": "OpenAI Prompt optimizer：基于数据与反馈优化",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "EDD、prompt优化与元提示词"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-anthropic-improver-history",
+      "title": "Improve your prompts in the developer console：Prompt Improver 历史公告",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-anthropic-success-evals",
+      "title": "Define success criteria and build evaluations",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "EDD、prompt优化与元提示词"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-suzgun-kalai",
+      "title": "Meta-Prompting: Enhancing Language Models with Task-Agnostic Scaffolding",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "API harness起始系统提示词与学术专家编排"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-gepa",
+      "title": "GEPA：Reflective Prompt Evolution",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "EDD、prompt优化与元提示词"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-anthropic-harness-2026",
+      "title": "Harness design for long-running application development",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "新上下文审查、发现复核和定点修复"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "acceptance-independent-of-implementation"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "maintain-and-retire-rules"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-codex-starter",
+      "title": "Codex Prompting Guide：官方编码 Agent 起始指令",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "API harness起始系统提示词与学术专家编排"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-openai-improvement-loop",
+      "title": "Build an Agent Improvement Loop with Traces, Evals, and Codex",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "EDD、prompt优化与元提示词"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-openai-self-evolving",
+      "title": "Self-Evolving Agents：人工优化、静态元提示词与 GEPA 对比",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "API harness起始系统提示词与学术专家编排"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-astra-instruction-audit",
+      "title": "Rethinking skills and prompts for GPT-6 Astra",
+      "relationship": [
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "maintain-and-retire-rules"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-beast-mode-burke",
+      "title": "Beast Mode 3.1：Burke Holland 的完整编码 Agent 操作提示词",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-dex-rpi",
+      "title": "Advanced Context Engineering for Coding Agents：Research–Plan–Implement",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "复杂旧库按代码事实研究和短计划"
+        }
+      ]
+    },
+    {
+      "sourceId": "meta-superclaude",
+      "title": "SuperClaude Framework：社区 Agent 配置与工作流集合",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "叠加多套总流程框架"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-anthropic-marketplace",
+      "title": "Claude Code 官方插件目录",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "领域skills及实际外部连接"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-vercel-agent-skills",
+      "title": "Vercel 官方 Agent Skills",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "领域skills及实际外部连接"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "route-specialist-capabilities"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-vercel-cli",
+      "title": "Vercel Skills CLI 与 skills.sh 生态入口",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-next-migration",
+      "title": "Next.js Skills 迁移指针（旧仓库）",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "已弃用、迁移指针与社区转述"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-microsoft-official",
+      "title": "Microsoft Agent Skills",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "无关领域及发现目录全部安装"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-huggingface-official",
+      "title": "Hugging Face Skills",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "无关领域及发现目录全部安装"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-github-awesome-copilot",
+      "title": "Awesome GitHub Copilot",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "skills-ecc",
+      "title": "ECC（原 Everything Claude Code）",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "叠加多套总流程框架"
+        }
+      ]
+    },
+    {
+      "sourceId": "skills-awesome-claude-code",
+      "title": "Awesome Claude Code",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "无关领域及发现目录全部安装"
+        }
+      ]
+    },
+    {
+      "sourceId": "skills-voltagent-catalog",
+      "title": "VoltAgent Awesome Agent Skills",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "无关领域及发现目录全部安装"
+        }
+      ]
+    },
+    {
+      "sourceId": "skills-voltagent-subagents",
+      "title": "VoltAgent Claude Code Subagents",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "skills-composio-catalog",
+      "title": "Composio Awesome Claude Skills",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "无关领域及发现目录全部安装"
+        }
+      ]
+    },
+    {
+      "sourceId": "skills-travis-catalog",
+      "title": "Travis Awesome Claude Skills",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "skills-aas",
+      "title": "AAS Core／Agentic Awesome Skills（原 Antigravity Awesome Skills）",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "skills-wshobson-agents",
+      "title": "Multi-harness Agentic Plugin Marketplace",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-ui-ux-pro-max",
+      "title": "UI UX Pro Max",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-impeccable",
+      "title": "Impeccable",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "领域skills及实际外部连接"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "route-specialist-capabilities"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-humanizer",
+      "title": "Humanizer",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-scientific",
+      "title": "Scientific Agent Skills",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "无关领域及发现目录全部安装"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-obsidian",
+      "title": "Obsidian Skills",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "无关领域及发现目录全部安装"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-claude-templates",
+      "title": "Claude Code Templates",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-gsd-core",
+      "title": "GSD Core",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "叠加多套总流程框架"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-remotion",
+      "title": "Remotion Agent Skills",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "无关领域及发现目录全部安装"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-supabase-official",
+      "title": "Supabase Agent Skills",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "领域skills及实际外部连接"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "route-specialist-capabilities"
+        }
+      ]
+    },
+    {
+      "sourceId": "skill-sentry-team",
+      "title": "Sentry Skills",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "可审查交付、准确发布状态与授权边界"
+        },
+        {
+          "relationship": "conditional",
+          "theme": "领域skills及实际外部连接"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "risk-specific-review-and-release"
+        }
+      ]
+    },
+    {
+      "sourceId": "claude-code-plugin-examples",
+      "title": "Claude Code 官方插件示例目录",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "skills-format-overview",
+      "title": "Agent Skills：格式、按需加载与跨工具复用",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "claude-plugins-overview",
+      "title": "Claude Code Plugins：组件、插件市场与安装范围",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "method-aidlc-original",
+      "title": "AI-Driven Development Life Cycle: Reimagining Software Engineering",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "完整AI-DLC/SPDD治理与大型规格体系"
+        }
+      ]
+    },
+    {
+      "sourceId": "method-aidlc-current",
+      "title": "AI-DLC Workflows：当前可执行的自适应生命周期",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "完整AI-DLC/SPDD治理与大型规格体系"
+        }
+      ]
+    },
+    {
+      "sourceId": "method-kiro-specs",
+      "title": "Kiro Specs：需求／缺陷分析、设计与任务",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "完整AI-DLC/SPDD治理与大型规格体系"
+        }
+      ]
+    },
+    {
+      "sourceId": "method-openspec",
+      "title": "OpenSpec Workflows：以变更为单位的灵活规格循环",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "完整AI-DLC/SPDD治理与大型规格体系"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "reuse-existing-artifacts"
+        }
+      ]
+    },
+    {
+      "sourceId": "method-sdd-taxonomy",
+      "title": "Understanding Spec-Driven-Development: Kiro, spec-kit, and Tessl",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "需求、非目标、约束与验收先行"
+        }
+      ]
+    },
+    {
+      "sourceId": "method-spdd",
+      "title": "Structured-Prompt-Driven Development（SPDD）",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "完整AI-DLC/SPDD治理与大型规格体系"
+        }
+      ]
+    },
+    {
+      "sourceId": "method-red-green",
+      "title": "Red/green TDD：把测试驱动开发用于 coding agent",
+      "relationship": [
+        {
+          "relationship": "core",
+          "theme": "一次一个可验证单元、限制修改范围"
+        }
+      ]
+    },
+    {
+      "sourceId": "method-vibe-engineering",
+      "title": "Vibe engineering",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "method-agentic-engineering",
+      "title": "What is agentic engineering?",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "method-strongdm-factory",
+      "title": "Software Factories And The Agentic Moment",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "Dark Factory、不看代码与高预算自动化"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "acceptance-independent-of-implementation"
+        }
+      ]
+    },
+    {
+      "sourceId": "method-dan-five-levels",
+      "title": "The Five Levels: from Spicy Autocomplete to the Dark Factory",
+      "relationship": [
+        {
+          "relationship": "intentional_exclusion",
+          "theme": "Dark Factory、不看代码与高预算自动化"
+        }
+      ]
+    },
+    {
+      "sourceId": "method-eval-first-firebase",
+      "title": "Eval-driven development: How we build better agent skills for Firebase",
+      "relationship": [
+        {
+          "relationship": "conditional",
+          "theme": "EDD、prompt优化与元提示词"
+        },
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "test-the-actual-packaged-skill"
+        }
+      ]
+    },
+    {
+      "sourceId": "solo-codex-agents-current",
+      "title": "Custom instructions with AGENTS.md",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "solo-codex-skills-current",
+      "title": "Build skills",
+      "relationship": [
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "test-the-actual-packaged-skill"
+        }
+      ]
+    },
+    {
+      "sourceId": "solo-codex-commands-current",
+      "title": "Developer commands — Codex CLI",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "solo-codex-plugins-current",
+      "title": "Plugins",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "solo-codex-worktrees-current",
+      "title": "Worktrees",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "solo-codex-best-practices-current",
+      "title": "Best practices",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "solo-claude-memory",
+      "title": "Claude Code：项目记忆、原生 AGENTS.md 与导入兼容方案",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "solo-claude-skills",
+      "title": "Claude Code：项目 skills、目录软链接与显式调用",
+      "relationship": [
+        {
+          "relationship": "gap_or_packaging",
+          "theme": "test-the-actual-packaged-skill"
+        }
+      ]
+    },
+    {
+      "sourceId": "solo-claude-commands",
+      "title": "Claude Code：Plan、diff、上下文与会话命令参考",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "solo-claude-common-workflows",
+      "title": "Claude Code：常见开发流程、续接会话与 worktree",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "solo-claude-plugin-install",
+      "title": "Claude Code：插件安装范围、命名空间和加载生效",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "solo-claude-local-review",
+      "title": "Claude Code：原生 /code-review 对本地分支及未提交修改进行审查",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    },
+    {
+      "sourceId": "solo-claude-plan-boundary",
+      "title": "Claude Code：Plan Mode 的计划、源码写入与批准边界",
+      "relationship": [
+        {
+          "relationship": "supporting_research",
+          "theme": "资料地图、实例、作者归属、发现入口或当前产品配置依据；没有必要逐字写入通用流程技能。"
+        }
+      ]
+    }
+  ],
+  "recommendedPackaging": {
+    "entrypoint": "精简SKILL.md：触发边界、继承项目/全局指令、规模判断、按需能力路由、验证证据、审查/交接和授权内交付。",
+    "conditionalReferences": [
+      "references/verification.md：独立预期、风险相关检查、失败诊断与发布验证，仅按改动需要读。",
+      "references/skill-maintenance.md：代表任务、触发正负例、回归与淘汰指令，仅维护AI行为/skill时读。"
+    ],
+    "assets": "确有复用价值时放一份可复制的工作记录模板；使用已有项目文档优先。",
+    "avoid": [
+      "把所有来源摘要塞入SKILL.md。",
+      "为每次个人任务强制大型团队流程或外部holdout系统。",
+      "复制整份全局Nix/审批规则到技能造成双份维护。",
+      "自动安装或激活所有发现的名人框架。",
+      "把单次失败或个人习惯升级成普遍规则。"
+    ],
+    "provenance": "报告列来源映射；可在仓库维护材料中保留精选出处和明确本技能是综合作品。不要把综合指令冒充名人原始prompt。"
+  },
+  "researchCoverageGap": "此前31个skills项目多数是官方团队、目录和大型社区集合；可执行的名人个人配置来源虽有Peter agent-scripts、Garry gstack、Ben工作流等，但没有系统深挖更多个人GitHub账号与原始技能文件。这个缺口属于资料覆盖，不能用“默认组合无需更多插件”来替代补查。",
+  "packagedImplementation": {
+    "status": "implemented",
+    "entrypoint": "skills/solo-delivery/SKILL.md",
+    "references": [
+      "skills/solo-delivery/references/work-record.md",
+      "skills/solo-delivery/references/verification.md"
+    ],
+    "changes": [
+      "Reuse existing task artifacts before choosing a default path",
+      "Select relevant available skills and tools",
+      "Validate key unknowns with small experiments",
+      "Use independent acceptance and expected values",
+      "Review scope, correctness and quality gates",
+      "Route data, permission, migration, UI, AI and release checks by actual impact",
+      "Keep one versioned source and retire ineffective rules"
+    ],
+    "supplementSourceCount": 19,
+    "supplementProjectCount": 17,
+    "sourceTotal": 169,
+    "projectTotal": 47
+  },
+  "supplementEffects": [
+    {
+      "priority": "default",
+      "suggestion": "审查质量门槛的变更本身：skip/删除断言/新抑制项/阈值降低/空catch或stub须有合理解释；不要为了检查变绿降低用户验收。",
+      "evidenceIds": [
+        "famous-addy-engineering-skills"
+      ],
+      "doNotCopy": "不强制新建CONSTRAINTS.md或安装整套扫描器，不硬编码80%覆盖或测试金字塔比例。",
+      "researchInput": "famous-staff-github-v2.json"
+    },
+    {
+      "priority": "default",
+      "suggestion": "把验收合同和产物/精确diff交给独立审查者，避免实现者结论造成锚定；逐项核实发现，不把新上下文当权威。",
+      "evidenceIds": [
+        "famous-addy-engineering-skills"
+      ],
+      "doNotCopy": "不为每个微小决定强制审查，不强制逐轮跨模型询问/额外CLI授权仪式。",
+      "researchInput": "famous-staff-github-v2.json"
+    },
+    {
+      "priority": "conditional",
+      "suggestion": "涉及UI/性能时明确记录基线、URL/状态/设备条件，并把运行测量、源码假设和未覆盖范围分开；性能修改尽量同条件前后比较。",
+      "evidenceIds": [
+        "famous-addy-web-quality",
+        "famous-chrome-devtools-skills"
+      ],
+      "doNotCopy": "不为普通任务安装新浏览器/MCP，沿用用户授权ego；静态审查不冒充实际测量。",
+      "researchInput": "famous-staff-github-v2.json"
+    },
+    {
+      "priority": "conditional",
+      "suggestion": "AI产品/提示词/技能开发先做真实轨迹错误分析、人工校准与代表样本评测，不只让同一agent给自己产物打分。",
+      "evidenceIds": [
+        "famous-hamel-shreya-evals"
+      ],
+      "doNotCopy": "不要求所有个人CRUD功能都开展大型标注，未运行人工review-loop不可声称已完成。",
+      "researchInput": "famous-staff-github-v2.json"
+    },
+    {
+      "priority": "conditional",
+      "suggestion": "陌生或易变API依据版本读少量官方来源；只将反复使用的流程沉淀为新skill，记录时间/版本，保留不确定性。",
+      "evidenceIds": [
+        "famous-philschmid-self-learning",
+        "famous-addy-engineering-skills"
+      ],
+      "doNotCopy": "不把每次研究都变成新skill，不照搬Antigravity工具名/保存路径。",
+      "researchInput": "famous-staff-github-v2.json"
+    },
+    {
+      "priority": "default",
+      "suggestion": "维护独立于实现者的验收/固定验证器和已知基线，持久记录尝试、结果和保留原因；可用现有工作记录承载。",
+      "evidenceIds": [
+        "famous-karpathy-autoresearch"
+      ],
+      "doNotCopy": "禁止把研究专用的无限循环、git reset回退用户更改、关闭权限当默认交付流程。",
+      "researchInput": "famous-staff-github-v2.json"
+    },
+    {
+      "decision": "纳入核心短指令",
+      "change": "测试期望来自需求、独立样例或已知正确值；禁止按同样实现重算而自证。",
+      "evidenceIds": [
+        "skill-matt-pocock"
+      ],
+      "reason": "现有“有意义测试”仍可更具体，防止AI生成永远通过的测试。",
+      "researchInput": "famous-builders-github-v2.json"
+    },
+    {
+      "decision": "纳入审查准则",
+      "change": "同时检查验收遗漏/范围越界与项目约定/关键设计，不必固定增加两个代理。",
+      "evidenceIds": [
+        "skill-matt-pocock"
+      ],
+      "reason": "独立审查不能只有“找bug”，也要判断做的是不是所需结果。",
+      "researchInput": "famous-builders-github-v2.json"
+    },
+    {
+      "decision": "纳入技能维护边界",
+      "change": "同一能力保留一个真实源码，宿主只做适配；description短且触发准确；只把反复有效经验留入技能。",
+      "evidenceIds": [
+        "peter-agent-scripts"
+      ],
+      "reason": "阻止调研扩展变成技能膨胀与跨工具漂移。",
+      "researchInput": "famous-builders-github-v2.json"
+    },
+    {
+      "decision": "保持现有核心，按需增强",
+      "change": "先查可获得代码与文档，再集中问改变结果的未知；术语经常歧义时在任务/项目记录内补简短词汇。",
+      "evidenceIds": [
+        "skill-armin-agent-stuff",
+        "skill-matt-pocock"
+      ],
+      "reason": "无需每个项目强建GLOSSARY/ADR，不新增每步审批。",
+      "researchInput": "famous-builders-github-v2.json"
+    },
+    {
+      "decision": "明确兼容边界",
+      "change": "gstack review是会修改的Fix-first流程，不能冒充独立只读review；需要时把它当另一完整框架使用。",
+      "evidenceIds": [
+        "investor-garrytan-gstack"
+      ],
+      "reason": "这是本轮发现的真实行为差异。",
+      "researchInput": "famous-builders-github-v2.json"
+    },
+    {
+      "decision": "不作为默认依赖",
+      "change": "LifeOS个人AI全栈、Jeff的多工具swarm、Pi运行时扩展、另开Chrome与账号CLI不默认进入solo。",
+      "evidenceIds": [
+        "skill-daniel-lifeos",
+        "skill-jeff-flywheel",
+        "skill-mario-pi-skills",
+        "skill-armin-agent-stuff"
+      ],
+      "reason": "配置/权限/运行时和维护成本不同；保留可借鉴思想，按实际缺口选择。",
+      "researchInput": "famous-builders-github-v2.json"
+    },
+    {
+      "sourceId": "famous-trailofbits-skills-v2",
+      "decision": "纳入solo-delivery按需验证参考，不要求所有任务跑完整安全插件。",
+      "take": [
+        "在行为修复中区分基线已有失败、新回归和无法归因的验证缺口。",
+        "报告证据层级，未运行runtime不可声称真实行为通过。",
+        "真实安全补丁按根因寻找相邻变体并保留合法行为检查。"
+      ],
+      "doNotAdopt": [
+        "不复制固定七类检查、全套human gate、runner环境和宿主专有Workflow作为每个小任务必经流程。",
+        "不因看到dguido提交就将团队仓库称为Dan Guido个人配置。"
+      ],
+      "researchInput": "famous-security-flywheel-v2.json"
+    },
+    {
+      "sourceId": "skill-jeff-flywheel",
+      "decision": "吸收可交接计划、依赖与事实核查；保留轻量默认。",
+      "take": [
+        "复杂任务的计划说明依赖与理由，关键假设由当前文档/代码/必要实验核实。",
+        "小而明确或紧急任务裁剪规划深度。"
+      ],
+      "doNotAdopt": [
+        "不把80%时间规划、四轮以上复核、1500行起步或指定模型写进solo-delivery。",
+        "不执行整库安装器或将Clawdbot配置直接称为Codex/Claude插件。",
+        "不把作者生态合计stars写成该repo的stars。"
+      ],
+      "researchInput": "famous-security-flywheel-v2.json"
+    },
+    {
+      "decision": "不再扩大solo主协议",
+      "change": "这两条强化按项目技术栈选择窄领域技能；已有solo的能力选择/版本核验足以承接，无需加入新固定阶段。",
+      "evidenceIds": [
+        "skill-simon-research",
+        "skill-david-fowler"
+      ]
+    },
+    {
+      "decision": "补强报告归属与星数说明",
+      "change": "Simon为本人托管、AI生成的研究skill；David为本人项目而非Microsoft官方插件。两者是有价值的一手分享，但不把整库stars当单skillstars，也不把低星称高星。",
+      "evidenceIds": [
+        "skill-simon-research",
+        "skill-david-fowler"
+      ]
+    }
+  ]
+}

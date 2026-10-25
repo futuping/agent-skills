@@ -1,0 +1,4 @@
+interface:
+  display_name: "Solo Delivery"
+  short_description: "Ship scoped features with evidence and review"
+  default_prompt: "使用 $solo-delivery 完成这个功能：先确认目标、项目约定与验收，再按任务规模实施、验证、审查并交付。"

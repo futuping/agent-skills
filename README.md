@@ -1,6 +1,6 @@
 # agent-skills
 
-Reusable Codex skills maintained by futuping.
+Reusable agent skills maintained by futuping.
 
 ## Skills
 
@@ -11,12 +11,40 @@ Reusable Codex skills maintained by futuping.
 - [`manage-nix-darwin-apps`](skills/manage-nix-darwin-apps): classify,
   package, publish, update, and integrate Homebrew and non-Homebrew macOS
   applications with nix-darwin.
+- [`solo-delivery`](skills/solo-delivery): deliver a scoped personal software
+  feature or bug fix with task-sized planning, independent acceptance criteria,
+  meaningful verification, review, and durable handoff. Shared instructions work
+  in Codex and Claude Code without requiring another workflow framework.
 
 ## Local installation
 
-Clone this repository, then link the skill directory into `~/.codex/skills/`.
-Restart Codex or begin a new task if the installed skill does not appear
-immediately.
+Keep one source directory in this repository. Current Codex discovers personal
+skills in `~/.agents/skills/`; Claude Code uses `~/.claude/skills/`. Both support
+symlinked skill directories. Existing installations in legacy locations do not
+need to be moved to add `solo-delivery`.
+
+For a Home Manager setup, declare both entries rather than copying the files:
+
+```nix
+{ config, ... }:
+let
+  soloDelivery = config.lib.file.mkOutOfStoreSymlink
+    "${config.home.homeDirectory}/agent-skills/skills/solo-delivery";
+in {
+  home.file.".agents/skills/solo-delivery".source = soloDelivery;
+  home.file.".claude/skills/solo-delivery".source = soloDelivery;
+}
+```
+
+Use the checkout's actual location if it differs. Merge these entries into the
+existing module, preserve global instruction links, and use the existing scoped
+activation process. Content edits then come directly from the versioned source.
+
+Start a new session if discovery has not refreshed. In Codex CLI use
+`$solo-delivery`; in Claude Code use `/solo-delivery`. Desktop selection differs
+by host; select the skill or explicitly provide its `SKILL.md` path. See the
+[research report](docs/research/vibe-coding-research.html) for source attribution,
+the recommended combination, current host instructions, and copyable prompts.
 
 ## Development and login runtime
 
