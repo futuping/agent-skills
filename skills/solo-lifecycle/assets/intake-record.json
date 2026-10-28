@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "task": {
+    "target_type": "context",
+    "object": "尚未接入的真实请求；使用前按实际填写",
+    "revision": null,
+    "environment": null,
+    "snapshot_id": "unverified",
+    "absence_reasons": {
+      "revision": "模板不绑定仓库；实际接入后填真实版本或无仓库原因。",
+      "environment": "模板未核实运行环境；无相关环境时保留null并说明原因。"
+    },
+    "id": "not-yet-assigned",
+    "kind": "exploration",
+    "execution_owner": "unassigned",
+    "acceptance_owner": "unassigned",
+    "status": "未开始",
+    "risk": "low",
+    "selected_stages": [
+      "00"
+    ],
+    "authorization": {
+      "allowed": [],
+      "forbidden": []
+    },
+    "budget": {
+      "max_hypothesis_cycles": null,
+      "max_validation_runs": null,
+      "max_same_failure_retries": 1,
+      "review_checkpoints": {
+        "hypothesis_cycles": 3,
+        "validation_runs": 6
+      }
+    }
+  },
+  "criteria": [
+    {
+      "id": "I00",
+      "stage": "00",
+      "kind": "intake",
+      "statement": "当前任务的接入准备足以选择下一步，或缺口已明确。",
+      "critical": true,
+      "expectation_basis": "当前真实请求、适用指令及实际观察，尚待取得。",
+      "status": "未开始",
+      "evidence_ids": []
+    }
+  ],
+  "evidence": [],
+  "intake": {
+    "goal": "从实际请求确定当前目标；本字段尚未完成接入。",
+    "non_goals": [
+      "不因00自动创建项目或安装工具。"
+    ],
+    "context_index": [],
+    "statements": [],
+    "unknowns": [
+      {
+        "id": "U1",
+        "question": "当前实际任务与可读资料是什么？",
+        "impact": "决定后续路线。",
+        "blocks": [
+          "路线的实际执行"
+        ],
+        "next_step": "读取当前请求与已授权相关资料。"
+      }
+    ],
+    "capabilities": [
+      {
+        "id": "C1",
+        "name": "读取当前任务需要的资料",
+        "status": "planned",
+        "basis": "尚未核对；不能据模板宣称已配置或已使用。",
+        "evidence_ids": []
+      }
+    ],
+    "strategy": [
+      {
+        "id": "S1",
+        "mechanism": "单agent与相关上下文、既有记录、外部依据",
+        "reason": "没有证据支持增加完整框架。",
+        "trigger": "实际接入任务后",
+        "cost": "按当前任务预算裁剪",
+        "dependencies": [
+          "C1"
+        ],
+        "fallback": "在可见请求范围说明缺口与可审查下一步。"
+      }
+    ],
+    "reliability": {
+      "sources": "待从实际请求选择权威来源。",
+      "premise_check": "区分意向、事实与假设；不以模板内容作事实。",
+      "independent_checks": "下一阶段使用独立于生成结果的预期或观察。",
+      "uncertainty_and_tool_state": "未核工具状态不记为成功；超时先查副作用。"
+    },
+    "stop_conditions": [
+      "新操作超过已有授权时只暂停该分支。"
+    ],
+    "route": {
+      "next_stage": null,
+      "reason": "尚未读取真实请求，不能预选开发路线。",
+      "next_action": "读取真实请求并确认最早需要进入的阶段。",
+      "inputs": [
+        "当前真实请求"
+      ],
+      "required_capabilities": [
+        "C1"
+      ],
+      "authorization_basis": "只继承实际已给授权；本模板不授予权限。",
+      "verification": "实际来源可追溯，路线理由成立。",
+      "readiness": "gaps_explicit",
+      "gaps": [
+        "当前任务、能力和授权尚未实际核对。"
+      ],
+      "unresolved_reason": "实际任务、目标与可读资料尚未明确；先完成必要澄清。"
+    }
+  },
+  "handoff": {
+    "next_action": "读取真实请求并确认最早需要进入的阶段。",
+    "blockers": [
+      "尚未执行接入，不能将本模板标为通过。"
+    ]
+  },
+  "template_notice": "未执行模板；不代表任何真实项目、仓库、配置或用户接受。所有示例假设需按当前请求替换。"
+}

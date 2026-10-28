@@ -1,0 +1,66 @@
+{
+  "skill": "solo-lifecycle",
+  "version": "1.2.0",
+  "verified_at_utc": "2026-10-28T19:05:18.657912+00:00",
+  "source": {
+    "archive": "vibe_coding_guide_and_skill_2026-10-29_v1.2.0.zip",
+    "sha256": "e44a4380b6531e28a4fbb9cfc7d0eb0a630b1e1249653845e8a50f788adf910c",
+    "skill_files_sha256": {
+      "LICENSE": "b833f454e0ada89018a5994ce6e276b8e76e22ad15c17bce99313fbba7b791f4",
+      "SKILL.md": "ce3559c1f343d15987809ba067b7af958bc929c997e2c649ac1cd928db4fa15b",
+      "references/implementation.md": "b3a2ed5f5261c691bec2903330e76c7f5b97773abb566550c255b2dbb164f813",
+      "references/routing.md": "179d15db246faaa879969c5e5f5661250eb9f4b4d6a0aaaa32cc81a395fc7268",
+      "references/environment.md": "5b11c49723bbf99afc40c913c035a41c587d1ca5c2ba8b9df3ab7afc2d1bf11e",
+      "references/operations.md": "c5735e7bb9aa502870ffe5d8b12db4099e1b80b6596278053bd2cf197d7ff7cb",
+      "references/governance.md": "2d567fd146871256f655a1d6e548019bd14597eb3e79486db9dc4cdd1c9f3d11",
+      "references/reliability.md": "72d2f106c768e5a141483673ed79b282606ebf7d36a8b47b90d06508c212260d",
+      "references/discovery.md": "6bff4082fa3718b76591441f620be776bb4ebb8a90997ad8615ac1de6b076737",
+      "references/delivery.md": "d7f4ec8c745c6b81fe4475dd41d11e8494b7bd875007d5710f35448a82cbc1eb",
+      "references/intake.md": "5c2ab34b2ab62670cea51d393ec6a9a36709e87b6291019f4105cdab4afcdc3f",
+      "references/retirement.md": "5ed2bfa96feb7411e83ecfcefe8a00d64879e40920b011685eef0a537991640d",
+      "references/design.md": "c3d4a3dc4356bb5ae7667e634895714c7d89856884f803395625dde462850260",
+      "references/records.md": "5df2b6c0b2c94341b3962022bf953a951f5498fe4714938b66b1940d68d18545",
+      "references/product-context.md": "c4048588e6b44b1cfeec49dfae19a07d70a76c672578517a2fe6c2fb8b27f591",
+      "tests/test_check_record.py": "6d2fa3ba05a822052759241f5335581c638dbc4394fa30fb47fde1acd8c40d76",
+      "scripts/check_record.py": "ab4849aa0833c6edae9d68a69b99905271216d422cdb3461fcddbb6135672e79",
+      "assets/intake-record.json": "3f87cd634cc1ac20c42ed5ac7cf454d97bbb4fb4ccf6ec7403d918dd2b620bb3",
+      "assets/release-runbook.md": "1d56d4ca1e0ec9aaa49ee202bbc13e4e2032bab25a5655d9c47603593fec060d",
+      "assets/evidence-record.schema.json": "80807da1e9423a41c541973f2120527287967e9e6ce80ca564116610f298e18e",
+      "assets/paired-eval.json": "4a70823e9d3f3f98bcba4fed3d809c07d88db37a745e3b9cd4ea476e9b44ff12",
+      "assets/evidence-record.json": "d1b1dfa4052ca09fa36962a96fe011eebe2bc348878b98fe2d57280d380d757f",
+      "assets/work-record.md": "626141e94d94fd9ca7b619f7b142d15e6d2127852859ebe55c98c18ad776eb08"
+    }
+  },
+  "checks": {
+    "skill_files_match_verified_delivery": 23,
+    "full_core_tests_passed": 137,
+    "skill_format": "passed",
+    "nix_flake_check": "passed on aarch64-darwin; existing login check plus new stdlib record check",
+    "stdlib_test_count": 129,
+    "optional_schema_tests_skipped_in_stdlib_check": 8,
+    "native_discovery": {
+      "tool": "codex-cli 0.164.0-alpha.11.1",
+      "method": "initialize + skills/list(forceReload=true); no model turn",
+      "name": "solo-lifecycle",
+      "enabled": true,
+      "scope": "user",
+      "errors": 0,
+      "model_turns": 0
+    }
+  },
+  "installation": {
+    "declaration": "~/.nix/nix-darwin/flake-home.nix",
+    "source": "~/agent-skills/skills/solo-lifecycle",
+    "entry": "~/.agents/skills/solo-lifecycle",
+    "application": "Scoped application of the new built Home Manager home-files entry; generation retained by a Nix GC root.",
+    "global_instruction_links_preserved": true,
+    "other_pending_nix_changes_not_activated": true,
+    "claude_entry_added": false,
+    "full_system_rebuild": false
+  },
+  "limitations": [
+    "Registry discovery is not a model workflow or productivity test.",
+    "No full Home Manager or nix-darwin activation was run.",
+    "Nix configuration change remains in the existing working tree; this publication concerns agent-skills."
+  ]
+}

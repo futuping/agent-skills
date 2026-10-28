@@ -15,6 +15,11 @@ Reusable agent skills maintained by futuping.
   feature or bug fix with task-sized planning, independent acceptance criteria,
   meaningful verification, review, and durable handoff. Shared instructions work
   in Codex and Claude Code without requiring another workflow framework.
+- [`solo-lifecycle`](skills/solo-lifecycle): version 1.2.0, covering personal
+  software work from task intake (00) through retirement (15). Load only the
+  current stage's references; commercial and AI product guidance is conditional.
+  Evidence records and the read-only checker are optional. See
+  [the release and installation note](docs/solo-lifecycle.md).
 
 ## Local installation
 
@@ -55,6 +60,11 @@ built-in test runner and have no third-party JavaScript dependencies:
 nix develop --command pnpm test
 nix flake check --no-update-lock-file
 ```
+
+The flake also checks `solo-lifecycle` using Nix Python 3.12: 129 standard-library
+tests run, and eight optional JSON Schema contract tests are explicitly skipped
+without `jsonschema`. The source delivery's locked validation environment runs
+all 137 tests. Skill installation needs no additional Python dependencies.
 
 The default [extension workflow](skills/bitwarden-login/references/browser-extension.md)
 uses ego's embedded runtime and does not need a CLI provider. On Apple Silicon

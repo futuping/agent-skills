@@ -43,6 +43,15 @@
           { };
 
       checks = forAll (pkgs: {
+        solo-lifecycle =
+          pkgs.runCommand "solo-lifecycle-record-tests"
+            {
+              nativeBuildInputs = [ pkgs.python312 ];
+              PYTHONDONTWRITEBYTECODE = "1";
+            }
+            ''
+              python3 -B -m unittest discover -s ${self}/skills/solo-lifecycle/tests -v > "$out" 2>&1
+            '';
         login =
           pkgs.runCommand "bitwarden-login-tests"
             {
