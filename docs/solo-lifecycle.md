@@ -45,8 +45,8 @@ new Home Manager activation once the repository-backed link is deployed.
 Codex scans `~/.agents/skills` and supports symlinked skill directories, as
 described in the [official skill documentation](https://learn.chatgpt.com/docs/build-skills).
 Invoke `$solo-lifecycle` on the next turn; if discovery has not refreshed,
-restart Codex. Existing `solo-delivery` remains available; select one lifecycle
-workflow for a task. This installation adds only the Codex entry, with no new
+restart Codex. Use this single lifecycle workflow for a task.
+This installation adds only the Codex entry, with no new
 Claude Code entry.
 
 ## Verification

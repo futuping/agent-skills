@@ -11,10 +11,6 @@ Reusable agent skills maintained by futuping.
 - [`manage-nix-darwin-apps`](skills/manage-nix-darwin-apps): classify,
   package, publish, update, and integrate Homebrew and non-Homebrew macOS
   applications with nix-darwin.
-- [`solo-delivery`](skills/solo-delivery): deliver a scoped personal software
-  feature or bug fix with task-sized planning, independent acceptance criteria,
-  meaningful verification, review, and durable handoff. Shared instructions work
-  in Codex and Claude Code without requiring another workflow framework.
 - [`solo-lifecycle`](skills/solo-lifecycle): version 1.2.0, covering personal
   software work from task intake (00) through retirement (15). Load only the
   current stage's references; commercial and AI product guidance is conditional.
@@ -25,19 +21,18 @@ Reusable agent skills maintained by futuping.
 
 Keep one source directory in this repository. Current Codex discovers personal
 skills in `~/.agents/skills/`; Claude Code uses `~/.claude/skills/`. Both support
-symlinked skill directories. Existing installations in legacy locations do not
-need to be moved to add `solo-delivery`.
+symlinked skill directories.
 
-For a Home Manager setup, declare both entries rather than copying the files:
+For the current Codex Home Manager setup, declare the entry rather than copying
+the files:
 
 ```nix
 { config, ... }:
 let
-  soloDelivery = config.lib.file.mkOutOfStoreSymlink
-    "${config.home.homeDirectory}/agent-skills/skills/solo-delivery";
+  soloLifecycle = config.lib.file.mkOutOfStoreSymlink
+    "${config.home.homeDirectory}/agent-skills/skills/solo-lifecycle";
 in {
-  home.file.".agents/skills/solo-delivery".source = soloDelivery;
-  home.file.".claude/skills/solo-delivery".source = soloDelivery;
+  home.file.".agents/skills/solo-lifecycle".source = soloLifecycle;
 }
 ```
 
@@ -45,11 +40,10 @@ Use the checkout's actual location if it differs. Merge these entries into the
 existing module, preserve global instruction links, and use the existing scoped
 activation process. Content edits then come directly from the versioned source.
 
-Start a new session if discovery has not refreshed. In Codex CLI use
-`$solo-delivery`; in Claude Code use `/solo-delivery`. Desktop selection differs
-by host; select the skill or explicitly provide its `SKILL.md` path. See the
-[research report](docs/research/vibe-coding-research.html) for source attribution,
-the recommended combination, current host instructions, and copyable prompts.
+Start a new session if discovery has not refreshed. In Codex use
+`$solo-lifecycle`. If separately configured in Claude Code, use `/solo-lifecycle`.
+See the [release and installation note](docs/solo-lifecycle.md) for the source
+delivery and verification scope.
 
 ## Development and login runtime
 
