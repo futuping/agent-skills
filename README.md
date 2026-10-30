@@ -11,10 +11,11 @@ Reusable agent skills maintained by futuping.
 - [`manage-nix-darwin-apps`](skills/manage-nix-darwin-apps): classify,
   package, publish, update, and integrate Homebrew and non-Homebrew macOS
   applications with nix-darwin.
-- [`solo-lifecycle`](skills/solo-lifecycle): version 1.2.0, covering personal
+- [`solo-lifecycle`](skills/solo-lifecycle): version 1.2.1, covering personal
   software work from task intake (00) through retirement (15). Load only the
   current stage's references; commercial and AI product guidance is conditional.
-  Evidence records and the read-only checker are optional. See
+  Reports the route, stage changes, and evidence-backed handoff by default while
+  continuing authorized work. Evidence records and the read-only checker are optional. See
   [the release and installation note](docs/solo-lifecycle.md).
 
 ## Local installation
