@@ -5,7 +5,8 @@
 - [Decision boundaries](#decision-boundaries)
 - [Repository layout](#repository-layout)
 - [Package and source state](#package-and-source-state)
-- [Overlay and Darwin module](#overlay-and-darwin-module)
+- [Overlay and shared Darwin entry point](#overlay-and-shared-darwin-entry-point)
+- [Package-selected lifecycle](#package-selected-lifecycle)
 - [Updater acceptance policy](#updater-acceptance-policy)
 - [macOS bundle policy](#macos-bundle-policy)
 - [Maintainer environment](#maintainer-environment)
@@ -20,7 +21,8 @@ by nixpkgs or Homebrew. Keep these cases elsewhere:
 - adequate nixpkgs package: consume it directly;
 - Homebrew cask: follow the Homebrew Cask route in this skill;
 - system extension, input method, driver, LaunchDaemon, or privileged helper:
-  use a lifecycle module;
+  keep any required lifecycle module in the remote shared entry point, normally
+  activated by package selection;
 - private licensed artifact that must not be referenced publicly: keep its
   package definition private.
 
@@ -113,7 +115,7 @@ Use `fetchzip`, `unzip`, `7zz`, or another extractor only when it matches the
 real artifact. Do not rename bundles unless the upstream or macOS integration
 requires it.
 
-## Overlay and Darwin module
+## Overlay and shared Darwin entry point
 
 Export the package and overlay from the flake:
 
@@ -131,6 +133,10 @@ let
   overlay = final: _prev: {
     example-app = final.callPackage ./packages/example-app.nix { };
   };
+
+  applicationModule = { lib, ... }: {
+    nixpkgs.overlays = lib.mkAfter [ overlay ];
+  };
 in
 {
   packages = forAllSystems (system: {
@@ -143,17 +149,20 @@ in
     default = overlay;
   };
 
-  darwinModules.example-app = { lib, ... }: {
-    nixpkgs.overlays = lib.mkAfter [ overlay ];
+  # Named exports may remain for compatibility; consumers use the shared entry.
+  darwinModules.example-app = applicationModule;
+  darwinModules.default = {
+    imports = [ applicationModule ];
   };
 }
 ```
 
-The module installs only the overlay. The consumer decides whether the package
-is present. Keep all such imports and selections together in the consumer's
-focused `nix-packages.nix`. This keeps adding or removing an ordinary
-application equivalent to adding or removing one package name without mixing
-it into native nixpkgs or Homebrew package lists.
+The shared entry point registers the repository's overlays and lifecycle
+modules without selecting any applications. A source-level consumer import of
+`inputs.nix-packages.darwinModules.default` is made once. Thereafter adding or
+removing an application changes only its bare name in the focused
+`flake-packages.nix` (or the repository's existing equivalent). Keep
+application-specific imports inside the remote repository, never in the host.
 
 The remote integration is incomplete until the consumer can select the package
 by a bare identifier. When forwarding an upstream flake package instead of
@@ -167,9 +176,40 @@ upstreamOverlay = final: _prev: {
 };
 ```
 
-Export that overlay and append it from a thin Darwin module. The forwarded
-derivation remains owned by the upstream flake; the overlay exists to provide
-the stable bare consumer attribute.
+Export that overlay and register it through the shared Darwin entry point.
+The forwarded derivation remains owned by the upstream flake; the overlay
+provides the stable bare consumer attribute.
+
+## Package-selected lifecycle
+
+An application may need lifecycle management without needing a separate local
+enable declaration. Detect the selected package in `environment.systemPackages`
+inside the remote module and derive the default enable state from that
+selection. Do not also add the package based on that computed state: doing
+both creates a dependency cycle.
+
+For an application that needs a writable installation, a small selection
+package can carry a passthru reference to the original payload without exposing
+a second immutable `.app` through the system application environment. Keep
+this wrapper, payload, lifecycle script, options, and tests remote. Guard
+attribute inspection for package values that are paths or strings, use stable
+payload identities when comparing selections, and reject ambiguous selections
+unless the user supplies an explicit override.
+
+Keep the shared module loaded after the package is removed so it can clean up
+only owned artifacts. Preserve replaceable package options and existing explicit
+enable overrides for compatibility, but do not emit those options in the normal
+consumer example. Document a separate enable declaration only when there is a
+demonstrated limitation, such as the existing Wetype contract, or an explicit
+user preference.
+
+Evaluate the shared entry point itself: no package selected must keep the app
+disabled without creating state or installing anything on a machine that has
+never managed it. The bare selection must activate the correct payload,
+removal must retain cleanup for previously owned state, and explicit overrides
+must still work. Also force each registered overlay's package derivation and
+confirm package lists do not grow from importing the shared module. Type-only
+export checks are insufficient.
 
 ## Updater acceptance policy
 
@@ -264,22 +304,29 @@ lock validation.
 Publish the package repository first. Then:
 
 1. Add its flake input with `inputs.nixpkgs.follows = "nixpkgs"`.
-2. Add only the required remote Darwin modules to `nix-packages.nix` imports.
-3. Add their bare package attributes to `environment.systemPackages` in that
-   same file. Reject `inputs.*.packages.*`, `pkgs.<name>`, `pkgs.callPackage`,
+2. Reuse the source's shared remote Darwin entry point; add it once at the
+   source-wiring level only if absent. Do not add an app-specific import.
+3. Add the bare package attribute to the matching focused list. Reject
+   `inputs.*.packages.*`, `pkgs.<name>`, `pkgs.callPackage`,
    inline derivations, interpolated package paths, and local aliases for
    qualified package expressions.
-4. Import only `./nix-packages.nix` from the main consumer flake. Reserve
-   `flake-nixpkgs.nix` for native nixpkgs packages and `flake-brew.nix` for
-   Homebrew or brew-nix packages.
+4. Preserve existing focused consumer file names. Reserve `flake-nixpkgs.nix`
+   for native nixpkgs packages and `flake-brew.nix` for Homebrew packages.
 5. Replace `pkgs.callPackage ./local-package.nix { }` with the overlay
    attribute.
-6. Update only the new input in `flake.lock`.
+6. Update only the affected input in `flake.lock` and its required dependency
+   nodes; preserve unrelated lock changes.
 7. Evaluate the remote package derivation and compare it with the local one.
-8. Delete the tracked local package file and stale module references, then
-   remove empty package/module directories.
+8. Remove the migrated app's local implementation and dedicated imports,
+   options, manifests, scripts, tests, and empty directories. Include untracked
+   and ignored remnants in the inventory; preserve unrelated files and shared
+   maintenance checkouts. Confirm its bare name is the only app-specific
+   consumer declaration, except a justified explicit-enable case.
 9. Run no-build checks and evaluate the final Darwin system.
-10. Commit the remote repository before the consumer repository.
+10. When a consumer commit is authorized, commit the validated remote change
+    first. Migration does not by itself require committing unrelated consumer
+    work or changing its existing index.
 
-If the consumer already has unrelated lock changes, stage only the new input's
-lock hunk and leave the others untouched.
+If committing the consumer is authorized and it already has unrelated lock
+changes, stage only the intended input and required dependency changes. Leave
+unrelated lock hunks and the existing index intact.

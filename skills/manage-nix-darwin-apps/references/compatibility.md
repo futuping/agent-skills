@@ -61,8 +61,9 @@ review token collisions, and merge rather than replace the base package
 namespace. If the overlay exposes the result through `pkgs.brewCasks`, let the
 consumer install or remove it through the ordinary package list.
 
-Do not introduce a `programs.<token>.enable` option merely to select an
-ordinary application package.
+Register the overlay in the source's shared remote entry point. Do not add a
+per-application consumer import or a `programs.<token>.enable` declaration to
+select the application.
 
 ## Require a dedicated nix-darwin module
 
@@ -81,12 +82,21 @@ mentions paths such as:
 
 Require the module to:
 
-- expose enable and replaceable package options;
+- register in the shared remote entry point and normally derive activation
+  from the selected package;
+- keep replaceable package options and explicit enable overrides when useful,
+  without requiring them in the ordinary local declaration;
 - avoid consumer-specific `specialArgs`;
 - install writable copies when upstream self-update requires them;
 - use an ownership marker and refuse to replace unmanaged targets;
 - stage replacements before switching the target;
 - make enable, upgrade, disable, and repeated activation converge safely.
+
+Having lifecycle state does not by itself justify an explicit local enable
+option. Use that exception only when the current integration cannot safely
+derive the state from package selection, as in the existing Wetype contract,
+or the user requests it. Record the concrete limitation. Keep the shared module
+loaded on package removal so owned state can be cleaned up.
 
 Use
 [`futuping/brew-nix-extra`](https://github.com/futuping/brew-nix-extra) as a

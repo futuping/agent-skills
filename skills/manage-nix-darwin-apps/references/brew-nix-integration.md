@@ -67,24 +67,25 @@ start an audit or develop `brew-api-extra` or `brew-nix-extra`.
 
 Keep package provenance visible in the consumer:
 
-- `flake-brew.nix` owns brew-nix imports, ordinary cask selections, and
-  cask-specific consumer options;
-- `nix-packages.nix` owns overlay imports and selections for non-Homebrew
+- `flake-brew.nix` owns bare cask selections and any documented exceptional
+  consumer options, such as an integration that requires explicit enable;
+- `flake-packages.nix` (or the existing equivalent) owns bare selections for
   applications published through `futuping/nix-packages`;
 - `flake-nixpkgs.nix` owns packages provided directly by the pinned nixpkgs
   input;
-- the main `flake.nix` wires these focused local modules and any genuine remote
-  lifecycle modules into the Darwin system.
+- source-level wiring connects these local lists and one shared remote entry
+  point per source to the Darwin system. Application-specific overlays and
+  lifecycle imports stay inside the remote entry points.
 
-Move both the package selection and its related overlay import when an
-application is reclassified. Never leave the same application in multiple
-package lists.
+When an application is reclassified, move its bare selection to the appropriate
+list and move its implementation between remote sources as needed. Never leave
+the same application in multiple lists or add a new per-app host import.
 
 In every ordinary consumer package list, make each application entry a bare
 identifier relative to the surrounding `with` namespace. Reject qualified
 package paths, generated namespaces, inline derivations, interpolated paths,
-and local aliases for those expressions. Keep qualified remote module
-references only in `imports` or the main flake's `modules` list.
+and local aliases for those expressions. Qualified consumer module references
+wire shared sources, not individual applications.
 
 ## Third-party metadata catalog
 
@@ -115,10 +116,9 @@ thirdPartyBrewCasks."example-token"
 
 Keep this namespace separate inside the remote implementation so token
 collisions and metadata provenance remain visible. Expose each reviewed token
-to the consumer through the existing `brew-nix-extra` third-party overlay and
-thin module, or add a focused remote overlay when necessary. The overlay must
-merge the token into `pkgs.brewCasks`; then `flake-brew.nix` selects only the
-bare token:
+to the consumer through `brew-nix-extra`'s shared remote entry point, registering
+a focused remote overlay there when necessary. The overlay must merge the
+token into `pkgs.brewCasks`; then `flake-brew.nix` selects only the bare token:
 
 ```nix
 environment.systemPackages = with pkgs.brewCasks; [
@@ -167,7 +167,8 @@ Merge with `prev.brewCasks`; never replace the complete namespace. Review
 collisions before exposing a third-party token there, and retain the metadata
 source in the remote overlay implementation.
 
-A thin nix-darwin module may install the overlay after brew-nix:
+A remote module registered in the shared entry point may install the overlay
+after brew-nix:
 
 ```nix
 { lib, ... }:
@@ -184,9 +185,9 @@ environment.systemPackages = with pkgs.brewCasks; [
 ];
 ```
 
-Adding or deleting the package name should be the only per-host operation. Do
-not add a program enable option unless the application has lifecycle state
-beyond package presence.
+Adding or deleting the package name should be the only app-specific per-host
+operation. Keep lifecycle management remote too, normally triggered by package
+selection. Lifecycle state alone is not a reason for a second declaration.
 
 ## Dedicated lifecycle module
 
@@ -196,19 +197,23 @@ Pin remote lifecycle modules as a flake input:
 brew-nix-extra.url = "github:futuping/brew-nix-extra";
 ```
 
-Import the required module centrally:
+Connect the source's shared entry point once (publish that entry point if the
+source does not yet provide it):
 
 ```nix
 modules = [
   inputs.brew-nix.darwinModules.default
-  inputs.brew-nix-extra.darwinModules.example
+  inputs.brew-nix-extra.darwinModules.default
 ];
 ```
 
-Keep per-host configuration declarative:
+The remote shared entry point registers the application module; the host
+selects the bare token:
 
 ```nix
-programs.example.enable = true;
+environment.systemPackages = with pkgs.brewCasks; [
+  example
+];
 ```
 
 A reusable module is appropriate when an observed rebuild or usage failure
@@ -217,13 +222,25 @@ management. A routine official Cask addition ends when its bare declaration is
 complete; it does not require a rebuild to rule out lifecycle problems. The
 module should:
 
-- export `darwinModules.<token>`;
-- provide `programs.<token>.enable` and `programs.<token>.package`;
-- default to `pkgs.brewCasks.<token>` only when official metadata exists;
-- accept an explicitly generated third-party package otherwise;
+- register its overlay and lifecycle behavior in the shared remote entry point;
+- derive default activation and payload from the selected package;
+- retain replaceable package and explicit enable overrides when useful for
+  compatibility, without requiring either in ordinary local declarations;
+- use official metadata when available, and resolve third-party generated
+  packages inside the remote implementation otherwise;
 - avoid consumer-specific flake inputs and `specialArgs`;
 - own complete install, upgrade, disable, and removal convergence;
 - isolate extraction and signing workarounds to the affected package.
+
+Leave the shared module imported when the package is removed so it can clean
+up owned state. Avoid selecting the package from an enable value that itself
+depends on the package list. If writable deployment is necessary, keep any
+selection wrapper remote and avoid exposing a duplicate immutable app in Finder.
+
+Use an explicit local `programs.<token>.enable` only when package selection
+cannot safely represent the current integration's state, such as the existing
+Wetype contract, or when the user requests it. Record that limitation rather
+than generalizing from installer scripts, drivers, or services.
 
 For a system path, copy through a same-filesystem staging directory, validate
 the staged artifact, then replace the managed target. Record ownership in a
@@ -299,6 +316,10 @@ For custom implementation changes, retain these applicable checks:
    `pkgs.brewCasks.<token>`, `inputs.*.packages.*`, generated namespaces,
    inline derivations, interpolated paths, and aliases for qualified package
    expressions.
+9. Search the consumer for the migrated application's dedicated imports, code,
+   manifests, scripts, and directories, including untracked or ignored files.
+   Remove replaced remnants after publication; keep unrelated applications and
+   shared maintenance checkouts outside the cleanup scope.
 
 For a concrete failure, requested audit, or custom packaging change, use a
 targeted package build with `nix build --no-link` only when explicitly

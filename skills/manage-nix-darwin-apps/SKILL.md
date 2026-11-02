@@ -1,6 +1,6 @@
 ---
 name: manage-nix-darwin-apps
-description: Integrate, package, publish, update, migrate, and troubleshoot macOS applications in nix-darwin across pinned nixpkgs, brew-nix/Homebrew Casks, futuping/nix-packages, brew-api-extra, and brew-nix-extra while enforcing bare-name consumer selections. Use when adding or updating an app, classifying its source, choosing a package, overlay, or lifecycle module, wiring flake inputs, automating upstream releases, or diagnosing artifacts, architecture, hashes, and macOS signatures.
+description: Integrate, package, publish, update, migrate, and troubleshoot macOS applications in nix-darwin across pinned nixpkgs, brew-nix/Homebrew Casks, futuping/nix-packages, brew-api-extra, and brew-nix-extra with bare-name consumer declarations and application implementation in remote repositories. Use when adding or updating an app, classifying its source, choosing a package, overlay, or lifecycle module, wiring flake inputs, automating upstream releases, or diagnosing artifacts, architecture, hashes, and macOS signatures.
 ---
 
 # Manage nix-darwin Apps
@@ -10,6 +10,38 @@ reproducible source verification, macOS bundle integrity, and a minimal
 consumer configuration. Classify the application before editing so the user
 does not need to know whether it belongs to nixpkgs, brew-nix, or an independent
 package repository.
+
+## Default consumer contract
+
+For the application being added or migrated, the local configuration contains
+only its bare name in the appropriate package list. Keep its package definition,
+overlays, lifecycle implementation, source manifests, updater, tests, and
+supporting files in the appropriate GitHub repository. An application-specific
+`darwinModules.<app>` import is still local integration code: do not leave it
+behind as the final result.
+
+Connect each source once through a shared remote entry point, such as
+`inputs.nix-packages.darwinModules.default`, and register application modules
+inside that remote entry point. Reuse existing source wiring and lock inputs;
+when the source lacks a shared entry point, implement and publish one remotely.
+The local source input and shared import are infrastructure, not per-application
+declarations. Do not add another host import for each application.
+
+A remote lifecycle module should normally derive its default activation from
+the selected package. Services, writable paths, drivers, or privileged helpers
+alone do not require the user to declare `programs.<app>.enable = true`.
+Require an explicit local enable declaration only for demonstrated cases that
+cannot safely be represented by package selection, such as the existing Wetype
+integration, or when the user explicitly wants that control. Record the actual
+limitation rather than assuming every input method or background service needs
+an exception.
+
+After publication and locking, remove the migrated application's local code,
+imports, configuration overrides, manifests, scripts, and empty directories.
+Check tracked, untracked, and ignored remnants in the consumer, preserving
+unrelated work. A local checkout used to maintain the remote repository is not
+a consumer dependency; never reference it from the consumer. Do not migrate
+unrelated applications or delete shared repositories to satisfy this rule.
 
 ## Default for an official Cask
 
@@ -82,7 +114,7 @@ environment.systemPackages = with pkgs.brewCasks; [
   example
 ];
 
-# nix-packages.nix
+# flake-packages.nix
 environment.systemPackages = with pkgs; [
   example-app
 ];
@@ -92,23 +124,23 @@ Never place qualified package paths, `inputs.*.packages.*`, `pkgs.<name>`,
 `pkgs.brewCasks.<token>`, generated namespaces, `pkgs.callPackage`, inline
 derivations, interpolated system-specific paths, or local aliases for those
 expressions in these lists. Allow qualified package paths only in remote
-implementation or evaluation/build commands. Allow qualified remote module
-references only in `imports` or the main flake's `modules` list.
+implementation or evaluation/build commands. Local module imports should wire
+shared sources; keep per-application module references in those remote sources.
 
 If a package is available only through a qualified expression, expose it
-through an overlay and a thin Darwin module before selecting it locally:
+through the source's remote overlay and shared Darwin entry point before
+selecting it locally:
 
 - merge a Cask token into `pkgs.brewCasks`;
 - add an independent package as a top-level `pkgs.<attribute>`;
-- make the thin module append only the overlay, without selecting the package.
+- register its overlay and any lifecycle module in the shared remote entry point
+  without selecting the package.
 
 Do not hide a qualified expression behind a local binding. Keep private or
-experimental implementation outside the package list and expose it through the
-same local overlay boundary. Declare each ordinary application in exactly one
-of the three focused files.
-
-Use `programs.<name>.enable` only for genuine lifecycle state beyond package
-presence. It is not an alternative syntax for selecting an ordinary app.
+experimental implementation in an appropriate private remote repository and
+expose it through the same shared source boundary. Declare each application
+once in the matching focused list, except for the documented explicit-enable
+cases described above.
 
 ## Inspect and route
 
@@ -133,9 +165,9 @@ For an application whose source still needs to be classified:
 | Official Cask | Declare its bare token and finish without building |
 | Cask missing from the official API | Publish metadata through `brew-api-extra`, then expose its bare token through `brew-nix-extra` |
 | Cask needs a reproducible package-only correction after a rebuild or use failure | Publish a focused `brew-nix-extra` overlay |
-| Ordinary non-Homebrew app or binary | Publish package, overlay, and thin module through `futuping/nix-packages` |
-| Private or experimental package | Keep focused implementation temporarily, but still expose a bare consumer attribute |
-| Genuine system lifecycle state | Use a purpose-built nix-darwin module |
+| Ordinary non-Homebrew app or binary | Publish through `futuping/nix-packages` and register in its shared entry point |
+| Private or experimental package | Keep implementation in a private remote source and expose a bare consumer attribute |
+| Genuine system lifecycle state | Keep the module remote and activate from package selection where possible |
 
 The routine official Cask workflow is complete above. Read the following
 references only for the additional work they describe, and read each selected
@@ -184,8 +216,8 @@ When metadata is absent, publish a narrow, deterministic adapter through
 `brew-api-extra` without executing upstream Ruby. Require HTTPS, reviewed
 download hosts, offline fixtures, rejection tests, and stable generated output.
 Treat the generated package expression as remote implementation only; expose
-the reviewed token through the existing or a focused `brew-nix-extra` overlay
-and thin module so the consumer still selects a bare token.
+the reviewed token through `brew-nix-extra`'s shared remote integration so the
+consumer still selects only a bare token.
 
 Create a package-normalization overlay only after a reproducible rebuild or
 application failure demonstrates that it is required. Merge into
@@ -209,8 +241,9 @@ Publish ordinary non-Homebrew applications through
 3. Preserve a valid upstream signature when possible. Apply only a complete,
    package-specific ad-hoc signature when extraction necessarily invalidates
    it, and verify the final bundle.
-4. Export `packages.<system>.<attribute>`, `overlays.<attribute>`, and a thin
-   `darwinModules.<attribute>` that appends the overlay with `lib.mkAfter`.
+4. Export the package and overlay, and register its integration in the shared
+   `darwinModules.default` entry point. Keep named exports for compatibility
+   when useful, but do not require an application-specific consumer import.
    Treat a package-only export as incomplete.
 5. When forwarding an upstream flake package, keep the qualified expression in
    the remote overlay and expose only the stable bare attribute to the
@@ -235,22 +268,31 @@ that requires it or an explicit request for that management.
 Require lifecycle modules to be portable, idempotent, and convergent. Stage
 updates atomically, track ownership, refuse to overwrite unmanaged targets, and
 remove only module-owned artifacts. Keep package options replaceable and avoid
-consumer-specific `specialArgs`.
+consumer-specific `specialArgs`. Activate by detecting the selected package
+from the shared remote module. Keep that module loaded when the package is
+removed so it can clean up owned state. Avoid a second immutable Finder app
+when a writable installation is required; keep that packaging detail remote.
+Explicit enable options may remain for compatibility or advanced overrides,
+but they are not the normal local declaration. See
+[references/remote-package-pattern.md](references/remote-package-pattern.md)
+for selection and cleanup checks.
 
 ## Integrate the consumer
 
-1. Keep `flake-nixpkgs.nix`, `flake-brew.nix`, and `nix-packages.nix` separated
-   by provenance.
-2. Import only the required remote overlay modules. Keep qualified module
-   references in `imports` or the main flake's `modules` list.
+1. Keep `flake-nixpkgs.nix`, `flake-brew.nix`, and `flake-packages.nix` (or the
+   existing equivalents) separated by provenance.
+2. Reuse one shared remote entry point per source. Add or repair source-level
+   wiring only when needed; register application-specific integration remotely.
 3. Select the application once by its bare name in the matching focused list.
 4. Make reusable flake inputs follow the consumer's nixpkgs input when the
    remote contract supports it, but only after the remote flake passes its own
    standalone lock checks.
 5. Update only the relevant lock input; do not run a full flake update unless
    requested.
-6. Remove replaced local derivations, stale imports, updater code, and empty
-   residual directories after the remote replacement is published and locked.
+6. Remove the migrated application's local implementation, dedicated imports,
+   overrides, supporting files, and empty directories after the remote
+   replacement is published and locked. The app's bare name should be its only
+   remaining declaration, unless a documented explicit-enable exception applies.
 
 ## Validate and report accurately
 
@@ -287,8 +329,11 @@ below. For reusable packaging changes, apply the relevant gates:
 6. Run `nix flake check --no-build --no-update-lock-file` on the consumer, then
    evaluate the selected package and final Darwin system derivations without
    activation.
-7. Inspect all three focused consumer files and reject every non-bare ordinary
-   application entry or duplicate declaration.
+7. Inspect the focused lists for non-bare or duplicate selections, then search
+   the consumer for the migrated app's other code/files, including untracked
+   and ignored remnants. Confirm only the bare declaration remains, with any
+   explicit-enable exception justified by an actual limitation. This is a
+   scoped cleanup, not authorization to refactor unrelated applications.
 8. When migrating unchanged package logic, compare the old and new derivation
    paths; exact equality is the strongest relocation check.
 9. Inspect available final app bundles and run
